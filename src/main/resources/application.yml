@@ -1,0 +1,9 @@
+config:
+  cors:
+    url: ${URL_CORS}
+
+spring:
+  profiles:
+    active: ${APP_PROFILE:dev}
+  jpa:
+    open-in-view: false

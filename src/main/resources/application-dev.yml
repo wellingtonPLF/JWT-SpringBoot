@@ -1,0 +1,23 @@
+#spring config
+spring:
+  datasource:
+    username: ${USERNAME}
+    password: ${PASSWORD}
+    url: jdbc:postgresql://localhost:5432/userAuth
+  database:
+    driverClassName: org.postgresql.Driver 
+  sql:
+    init:
+      data-locations: classpath:feed.sql
+      mode: always
+      platform: postgres
+  jpa:
+    database: POSTGRESQL
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+   
+# server
+server:
+  port: 8080
