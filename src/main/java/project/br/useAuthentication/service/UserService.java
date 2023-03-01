@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import project.br.useAuthentication.dtoModel.UserDTO;
+import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.UserRepository;
 
@@ -17,25 +19,48 @@ public class UserService {
 	@Autowired
 	private UserRepository userRepository;
 
-	public List<UserDTO> listAll() {
-		List<UserJPA> result = this.userRepository.findAll();
-		return result.stream().map(x -> new UserDTO(x)).collect(Collectors.toList());
+	public StatusResult<?> listAll() {
+		try {
+			List<UserJPA> result = this.userRepository.findAll();
+			List<UserDTO> userlist = result.stream().map(x -> new UserDTO(x)).collect(Collectors.toList());
+			return new StatusResult<List<UserDTO>>(HttpStatus.OK.value(), userlist);
+		}
+		catch(Exception e) {
+			return new StatusResult<String>(HttpStatus.BAD_REQUEST.value(), "Something went wrong.");
+		}
 	}
 	
-	public UserDTO pesquisarPorID(Long id) {
-		return new UserDTO(this.userRepository.findById(id).orElse(null));
+	public StatusResult<?> pesquisarPorID(Long id) {
+		try {
+			UserDTO user = new UserDTO(this.userRepository.findById(id).orElse(null)); 
+			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
+		}
+		catch (Exception e) {
+			return new StatusResult<String>(HttpStatus.NOT_FOUND.value(), "The requested id was not found."); 
+		}
 	}
 	
 	@Transactional
-	public UserDTO inserirOuAtualizar(UserDTO user) {
+	public StatusResult<?> inserirOuAtualizar(UserDTO user) {
 		System.out.println(user);
-		if(user.getName() != null) {
-			this.userRepository.save(new UserJPA(user));
+		try {
+			if(user.getName() != null) {
+				this.userRepository.save(new UserJPA(user));
+			}
+			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 		}
-		return user;
+		catch(Exception e) {
+			return new StatusResult<String>(HttpStatus.BAD_REQUEST.value(), "Something went wrong.");
+		}
 	}
 	
-	public void apagar(Long id) {	
-		this.userRepository.deleteById(id);
+	public StatusResult<?> apagar(Long id) {
+		try {
+			this.userRepository.deleteById(id);
+			return new StatusResult<HttpStatus>(HttpStatus.OK.value(), HttpStatus.OK);
+		}
+		catch(Exception e) {
+			return new StatusResult<String>(HttpStatus.NOT_FOUND.value(), "The requested id was not found.");
+		}
 	}
 }

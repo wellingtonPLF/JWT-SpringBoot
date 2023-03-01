@@ -1,5 +1,7 @@
 package project.br.useAuthentication.dtoModel;
 
+import java.util.Date;
+
 import project.br.useAuthentication.jpaModel.UserJPA;
 
 public class UserDTO {
@@ -7,10 +9,17 @@ public class UserDTO {
 	private Long id;
 	private String name;
 	private String password;
-	private String datanasc;
+	private Date datanasc;
 	
 	public UserDTO() {
 		
+	}
+	
+	public UserDTO(Long id, String name, String password, Date datanasc) {
+		this.id = id;
+		this.name = name;
+		this.password = password;
+		this.datanasc = datanasc;
 	}
 	
 	public UserDTO(UserJPA user) {
@@ -38,10 +47,10 @@ public class UserDTO {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-	public String getDatanasc() {
+	public Date getDatanasc() {
 		return datanasc;
 	}
-	public void setDatanasc(String datanasc) {
+	public void setDatanasc(Date datanasc) {
 		this.datanasc = datanasc;
 	}
 	

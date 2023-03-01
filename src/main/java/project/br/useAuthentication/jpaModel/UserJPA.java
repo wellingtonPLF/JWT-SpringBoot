@@ -1,11 +1,16 @@
 package project.br.useAuthentication.jpaModel;
 
+import java.util.Date;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.NotBlank;
 import project.br.useAuthentication.dtoModel.UserDTO;
 
 @Entity
@@ -14,44 +19,53 @@ public class UserJPA {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-	private String name;
-	private String password;
-	private String datanasc;
+	@Column(name="id")
+	private Long _id;
+	
+	@Column(name="name")
+	@NotBlank(message="Campo obrigatório")
+	private String _name;
+	
+	@Column(name="password")
+	private String _password;
+	
+	@Temporal(TemporalType.DATE) 
+	@Column(name="datanasc")
+	private Date _datanasc;
 	
 	public UserJPA() {
 		
 	}
 	
 	public UserJPA(UserDTO user) {
-		this.id = user.getId();
-		this.name = user.getName();
-		this.password = user.getPassword();
-		this.datanasc = user.getDatanasc();
+		this._id = user.getId();
+		this._name = user.getName();
+		this._password = user.getPassword();
+		this._datanasc = user.getDatanasc();
 	}
 	
 	public Long getId() {
-		return id;
+		return _id;
 	}
 	public void setId(Long id) {
-		this.id = id;
+		this._id = id;
 	}
 	public String getName() {
-		return this.name;
+		return this._name;
 	}
 	public void setName(String name) {
-		this.name = name;
+		this._name = name;
 	}
 	public String getPassword() {
-		return this.password;
+		return this._password;
 	}
 	public void setPassword(String password) {
-		this.password = password;
+		this._password = password;
 	}
-	public String getDatanasc() {
-		return this.datanasc;
+	public Date getDatanasc() {
+		return this._datanasc;
 	}
-	public void setDatanasc(String datanasc) {
-		this.datanasc = datanasc;
+	public void setDatanasc(Date datanasc) {
+		this._datanasc = datanasc;
 	}
 }
