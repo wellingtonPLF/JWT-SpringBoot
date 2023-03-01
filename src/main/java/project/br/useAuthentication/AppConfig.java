@@ -11,7 +11,7 @@ public class AppConfig {
 	
    @Value("${config.cors.url}")
    private String url;
-	
+   	
    @Bean 
    public WebMvcConfigurer corsConfigurer() {
        return new WebMvcConfigurer() {

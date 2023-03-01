@@ -26,11 +26,13 @@ public class UserJPA {
 	@NotBlank(message="Campo obrigatório")
 	private String _name;
 	
+	@NotBlank(message="Campo obrigatório")
 	@Column(name="password")
 	private String _password;
 	
 	@Temporal(TemporalType.DATE) 
 	@Column(name="datanasc")
+	@NotBlank(message="Campo obrigatório")
 	private Date _datanasc;
 	
 	public UserJPA() {
