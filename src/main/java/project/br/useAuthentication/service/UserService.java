@@ -46,8 +46,8 @@ public class UserService {
 	@Transactional
 	public StatusResult<?> inserirOuAtualizar(UserDTO user) {
 		try {
-			this.userRepository.save(new UserJPA(user));
-			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
+			UserDTO u = new UserDTO(this.userRepository.save(new UserJPA(user)));
+			return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
 		}
 		catch(Exception e) {
 			return new StatusResult<String>(HttpStatus.BAD_REQUEST.value(), "Something went wrong.");
