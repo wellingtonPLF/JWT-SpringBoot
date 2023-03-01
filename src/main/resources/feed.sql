@@ -18,7 +18,7 @@ BEGIN
 	
 	IF NOT EXISTS (SELECT id FROM usuario WHERE id = 5) THEN
 		INSERT INTO usuario(id, name, password, datanasc)
-		VALUES (5, ''Janna'', ''4545'', ''2015-08-09'');	
+		VALUES (4, ''Janna'', ''4545'', ''2015-08-09'');	
 	END IF;
 	
 --	IF NOT EXISTS (SELECT id FROM usuario WHERE id = ) THEN

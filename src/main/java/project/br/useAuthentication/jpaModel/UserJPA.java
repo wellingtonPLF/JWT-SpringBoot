@@ -11,6 +11,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import project.br.useAuthentication.dtoModel.UserDTO;
 
@@ -25,8 +26,13 @@ public class UserJPA {
 	private Long _id;
 	
 	@Column(name="name")
-	@NotBlank(message="Campo obrigatório")
+	@NotBlank(message="Campo obrigatório") 
 	private String _name;
+	
+	@Column(name="email", unique=true)
+	@NotBlank(message="Campo obrigatório")
+	@Email(message="Please provide a valid email address")
+	private String _email;
 	
 	@NotBlank(message="Campo obrigatório")
 	@Column(name="password")
@@ -34,7 +40,6 @@ public class UserJPA {
 	
 	@Temporal(TemporalType.DATE) 
 	@Column(name="datanasc")
-	@NotBlank(message="Campo obrigatório")
 	private Date _datanasc;
 	
 	public UserJPA() {
