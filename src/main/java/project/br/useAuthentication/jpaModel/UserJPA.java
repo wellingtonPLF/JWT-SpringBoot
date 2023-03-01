@@ -50,6 +50,7 @@ public class UserJPA {
 		this._id = user.getId();
 		this._name = user.getName();
 		this._password = user.getPassword();
+		this._email = user.getEmail();
 		this._datanasc = user.getDatanasc();
 	}
 	
@@ -70,6 +71,13 @@ public class UserJPA {
 	}
 	public void setPassword(String password) {
 		this._password = password;
+	}
+	public String getEmail() {
+		return this._email;
+	}
+
+	public void setEmail(String email) {
+		this._email = email;
 	}
 	public Date getDatanasc() {
 		return this._datanasc;

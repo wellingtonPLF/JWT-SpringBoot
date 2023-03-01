@@ -9,16 +9,18 @@ public class UserDTO {
 	private Long id;
 	private String name;
 	private String password;
+	private String email;
 	private Date datanasc;
 	
 	public UserDTO() {
 		
 	}
 	
-	public UserDTO(Long id, String name, String password, Date datanasc) {
+	public UserDTO(Long id, String name, String password, String email, Date datanasc) {
 		this.id = id;
 		this.name = name;
 		this.password = password;
+		this.email = email;
 		this.datanasc = datanasc;
 	}
 	
@@ -26,6 +28,7 @@ public class UserDTO {
 		this.id = user.getId();
 		this.name = user.getName();
 		this.password = user.getPassword();
+		this.email = user.getEmail();
 		this.datanasc = user.getDatanasc();
 	}
 	
@@ -53,12 +56,19 @@ public class UserDTO {
 	public void setDatanasc(Date datanasc) {
 		this.datanasc = datanasc;
 	}
-	
+	public String getEmail() {
+		return email;
+	}
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	@Override
 	public String toString() {
 		return String.format("Id:%d\n"
 				+ "Name:%s\n"
 				+ "Password:%s\n"
-				+ "DataNasc:%s\n", this.id, this.name, this.password, this.datanasc);
+				+ "Email:%s\n"
+				+ "DataNasc:%s\n", this.id, this.name, this.password, this.email, this.datanasc);
 	}
 }
