@@ -43,7 +43,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 	public final ResponseEntity<?> handleValidationExceptions(ConstraintViolationException message) {
 		List<String> lista = new ArrayList<String>();
 	    for (ConstraintViolation<?> cv : message.getConstraintViolations()) {
-	    	lista.add(String.format("%s: %s;", cv.getPropertyPath().toString(), cv.getMessage()));
+	    	lista.add(String.format("%s.", cv.getMessage()));
 	    }
 		ErrorResponse<List<String>> error = new ErrorResponse<List<String>>(lista, HttpStatus.BAD_REQUEST.value());
 		return new ResponseEntity<ErrorResponse<List<String>>>(error, HttpStatus.BAD_REQUEST);

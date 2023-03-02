@@ -13,6 +13,7 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import project.br.useAuthentication.dtoModel.UserDTO;
 
 @Entity
@@ -26,15 +27,15 @@ public class UserJPA {
 	private Long _id;
 	
 	@Column(name="name")
-	@NotBlank(message="Campo obrigatório") 
+	@NotBlank(message="Name: Campo obrigatório") 
 	private String _name;
 	
 	@Column(name="email", unique=true)
-	@NotBlank(message="Campo obrigatório")
-	@Email(message="Please provide a valid email address", regexp="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}")
+	@NotNull(message="Email: Campo obrigatório")
+	@Email(message="Email: Please provide a valid address", regexp="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}")
 	private String _email;
 	
-	@NotBlank(message="Campo obrigatório")
+	@NotBlank(message="Password: Campo obrigatório")
 	@Column(name="password")
 	private String _password;
 	
