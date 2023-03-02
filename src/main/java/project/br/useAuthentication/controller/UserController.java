@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.service.UserService;
@@ -32,12 +33,12 @@ public class UserController {
 	}
 	
 	@PostMapping("/usuarios")
-	public StatusResult<?> insert(@RequestBody UserDTO user) {
+	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
 		return this.userService.inserirOuAtualizar(user);
 	}
 	
 	@PutMapping("/usuarios")
-	public StatusResult<?> update(@RequestBody UserDTO user) {
+	public StatusResult<?> update(@Valid @RequestBody UserDTO user) {
 		return this.userService.inserirOuAtualizar(user);
 	}
 	

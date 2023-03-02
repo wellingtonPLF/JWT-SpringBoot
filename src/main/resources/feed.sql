@@ -16,14 +16,14 @@ BEGIN
 		VALUES (3, ''Joe'', ''12358'', ''joe@gmail.com'', ''2020-06-25'');	
 	END IF;
 	
-	IF NOT EXISTS (SELECT id FROM usuario WHERE id = 5) THEN
+	IF NOT EXISTS (SELECT id FROM usuario WHERE id = 4) THEN
 		INSERT INTO usuario(id, name, password, email, datanasc)
 		VALUES (4, ''Janna'', ''4545'', ''janna@gmail.com'', ''2015-08-09'');	
 	END IF;
-	
---	IF NOT EXISTS (SELECT id FROM usuario WHERE id = ) THEN
-	--	INSERT INTO usuario(id, name, password, datanasc)
-	--	VALUES (, '''', '''', '''');	
---	END IF;
+	/*
+	IF NOT EXISTS (SELECT id FROM usuario WHERE id = ) THEN
+		INSERT INTO usuario(id, name, password, datanasc)
+		VALUES (, '''', '''', '''');	
+	END IF; */
 END;
 ' LANGUAGE PLPGSQL;

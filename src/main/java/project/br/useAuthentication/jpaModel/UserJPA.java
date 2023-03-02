@@ -31,7 +31,7 @@ public class UserJPA {
 	
 	@Column(name="email", unique=true)
 	@NotBlank(message="Campo obrigatório")
-	@Email(message="Please provide a valid email address")
+	@Email(message="Please provide a valid email address", regexp="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}")
 	private String _email;
 	
 	@NotBlank(message="Campo obrigatório")
