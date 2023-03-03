@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -30,6 +31,11 @@ public class UserController {
 	@GetMapping("/usuarios/{id}")
 	public StatusResult<?> findById(@PathVariable("id") Long id) {
 		return this.userService.pesquisarPorID(id);
+	}
+	
+	@GetMapping("/usuarios/validarSenha")
+	public StatusResult<?> validarSenha(@RequestParam String username, @RequestParam String password) {
+		return this.userService.validarSenha(username, password);
 	}
 	
 	@PostMapping("/usuarios")

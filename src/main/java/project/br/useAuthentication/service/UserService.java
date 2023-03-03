@@ -5,13 +5,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-// import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
+import project.br.useAuthentication.exception.UnAuthorizedExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.UserRepository;
@@ -21,8 +22,9 @@ public class UserService {
 	
 	@Autowired
 	private UserRepository userRepository;
-	//@Autowired
-	//private PasswordEncoder encoder;
+	
+	@Autowired
+	private PasswordEncoder encoder;
 
 	public StatusResult<?> listAll() {
 		try {
@@ -41,10 +43,32 @@ public class UserService {
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
+	public StatusResult<?> validarSenha(String username, String password) {
+		try {
+			UserDTO user = new UserDTO(this.userRepository.findBy_email(username));
+			Boolean valid = this.encoder.matches(password, user.getPassword());
+			if(!valid) {
+				throw new Exception();
+			}
+			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
+		}
+		catch(Exception e) {
+			throw new UnAuthorizedExceptionResult("Incorret Username or Password , try again.");
+		}
+	}
+	
+	//When user id isn't passed, it will work as POST; When user id is passed, it will work as PUT;
 	@Transactional
 	public StatusResult<?> inserirOuAtualizar(UserDTO user) {
+		if (user.getPassword() != null) {
+			if (user.getPassword().length() < 8) {
+				throw new IllegalArgumentException("Password Not Valid");
+			}
+		}
+		user.setPassword(this.encoder.encode(user.getPassword()));
 		UserDTO u = new UserDTO(this.userRepository.save(new UserJPA(user)));
-		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
+		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);			
+
 	}
 	
 	public StatusResult<?> apagar(Long id) {

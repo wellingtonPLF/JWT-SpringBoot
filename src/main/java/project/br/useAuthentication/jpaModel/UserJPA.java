@@ -14,6 +14,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import project.br.useAuthentication.dtoModel.UserDTO;
 
 @Entity
@@ -35,12 +36,14 @@ public class UserJPA {
 	@Email(message="Email: Please provide a valid address", regexp="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}")
 	private String _email;
 	
-	@NotBlank(message="Password: Campo obrigatório")
 	@Column(name="password")
+	@NotBlank(message="Password: Campo obrigatório")
 	private String _password;
 	
 	@Temporal(TemporalType.DATE) 
 	@Column(name="datanasc")
+	@Past(message = "Birthdate should be in the past")
+	@NotNull(message="Date: Campo obrigatório")
 	private Date _datanasc;
 	
 	public UserJPA() {
