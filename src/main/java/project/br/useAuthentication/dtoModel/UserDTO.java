@@ -26,7 +26,7 @@ public class UserDTO {
 	
 	public UserDTO(UserJPA user) {
 		this.id = user.getId();
-		this.name = user.getName();
+		this.name = user.getUsername();
 		this.password = user.getPassword();
 		this.email = user.getEmail();
 		this.datanasc = user.getDatanasc();

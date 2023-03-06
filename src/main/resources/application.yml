@@ -2,6 +2,11 @@ config:
   cors:
     url: ${URL_CORS}
 
+security:
+  auth:
+    username: ${USERNAME_AUTH}
+    password: ${PASSWORD_AUTH}
+
 spring:
   profiles:
     active: ${APP_PROFILE:dev}

@@ -1,12 +1,20 @@
 package project.br.useAuthentication.jpaModel;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -17,9 +25,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import project.br.useAuthentication.dtoModel.UserDTO;
 
+@SuppressWarnings("serial")
 @Entity
 @Table(name = "usuario")
-public class UserJPA {
+public class UserJPA implements UserDetails{
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_sequence")
@@ -27,9 +36,9 @@ public class UserJPA {
 	@Column(name="id")
 	private Long _id;
 	
-	@Column(name="name")
+	@Column(name="username")
 	@NotBlank(message="Name: Campo obrigatório") 
-	private String _name;
+	private String _username;
 	
 	@Column(name="email", unique=true)
 	@NotNull(message="Email: Campo obrigatório")
@@ -46,16 +55,37 @@ public class UserJPA {
 	@NotNull(message="Date: Campo obrigatório")
 	private Date _datanasc;
 	
+	@ManyToMany
+	@JoinTable(name="User_Roles", 
+	joinColumns= @JoinColumn(name="user_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
+	private List<RoleJPA> roles;
+	
 	public UserJPA() {
 		
 	}
 	
 	public UserJPA(UserDTO user) {
 		this._id = user.getId();
-		this._name = user.getName();
+		this._username = user.getName();
 		this._password = user.getPassword();
 		this._email = user.getEmail();
 		this._datanasc = user.getDatanasc();
+	}
+	
+	public Collection<? extends GrantedAuthority> getAuthorities(){
+		return this.roles;
+	}
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+	public boolean isEnabled() {
+		return true;
 	}
 	
 	public Long getId() {
@@ -64,11 +94,11 @@ public class UserJPA {
 	public void setId(Long id) {
 		this._id = id;
 	}
-	public String getName() {
-		return this._name;
+	public String getUsername() {
+		return this._username;
 	}
-	public void setName(String name) {
-		this._name = name;
+	public void setName(String username) {
+		this._username = username;
 	}
 	public String getPassword() {
 		return this._password;
@@ -79,7 +109,6 @@ public class UserJPA {
 	public String getEmail() {
 		return this._email;
 	}
-
 	public void setEmail(String email) {
 		this._email = email;
 	}

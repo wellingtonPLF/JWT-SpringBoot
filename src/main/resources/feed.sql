@@ -1,3 +1,4 @@
+/*
 DO 
 '
 BEGIN
@@ -20,10 +21,11 @@ BEGIN
 		INSERT INTO usuario(id, name, password, email, datanasc)
 		VALUES (4, ''Janna'', ''4545'', ''janna@gmail.com'', ''2015-08-09'');	
 	END IF;
-	/*
+	
 	IF NOT EXISTS (SELECT id FROM usuario WHERE id = ) THEN
 		INSERT INTO usuario(id, name, password, datanasc)
 		VALUES (, '''', '''', '''');	
-	END IF; */
+	END IF; 
 END;
 ' LANGUAGE PLPGSQL;
+*/

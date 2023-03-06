@@ -34,8 +34,8 @@ public class UserController {
 	}
 	
 	@GetMapping("/usuarios/validarSenha")
-	public StatusResult<?> validarSenha(@RequestParam String username, @RequestParam String password) {
-		return this.userService.validarSenha(username, password);
+	public StatusResult<?> validarSenhaPorEmail(@RequestParam String username, @RequestParam String password) {
+		return this.userService.validarSenhaPorEmail(username, password);
 	}
 	
 	@PostMapping("/usuarios")

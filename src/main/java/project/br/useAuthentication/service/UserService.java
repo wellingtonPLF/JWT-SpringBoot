@@ -5,6 +5,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,14 +21,14 @@ import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.UserRepository;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService{
 	
 	@Autowired
 	private UserRepository userRepository;
 	
 	@Autowired
 	private PasswordEncoder encoder;
-
+		
 	public StatusResult<?> listAll() {
 		try {
 			List<UserJPA> result = this.userRepository.findAll();
@@ -43,7 +46,18 @@ public class UserService {
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
-	public StatusResult<?> validarSenha(String username, String password) {
+	//@Override
+	public UserDetails loadUserByUsername(String username)  throws UsernameNotFoundException {
+		try {
+			UserJPA user = this.userRepository.findBy_username(username);
+			return user;
+		}
+		catch (Exception e) {
+			throw new UsernameNotFoundException("User not Found: " + username);
+		}
+	}
+	
+	public StatusResult<?> validarSenhaPorEmail(String username, String password) {
 		try {
 			UserDTO user = new UserDTO(this.userRepository.findBy_email(username));
 			Boolean valid = this.encoder.matches(password, user.getPassword());
