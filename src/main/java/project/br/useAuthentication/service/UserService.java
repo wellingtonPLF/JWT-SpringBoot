@@ -46,7 +46,7 @@ public class UserService implements UserDetailsService{
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
-	//@Override
+	@Override
 	public UserDetails loadUserByUsername(String username)  throws UsernameNotFoundException {
 		try {
 			UserJPA user = this.userRepository.findBy_username(username);

@@ -1,69 +1,43 @@
 package project.br.useAuthentication;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
+import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import project.br.useAuthentication.service.UserService;
-
-@Configuration 
+@Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
-	
-	@Autowired
-	private UserService userDetailsService;
-	
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-	
-	@Value("${security.auth.username}")
-	private String username;
-	
-	@Value("${security.auth.password}")
-	private String password;
-	
-	private static final String[] WHITE_LIST_URLS = {
-	            "/usuarios/**",
-	};
 		
 	@Bean
 	public SecurityFilterChain securityASFilterChain (HttpSecurity http) throws Exception {
 		http
         .csrf().disable()
-        .authorizeHttpRequests().requestMatchers(WHITE_LIST_URLS).authenticated() 
+        .authorizeHttpRequests()
+        .anyRequest().authenticated()
             .and()
         .httpBasic();
 		return http.build();
 	}
 	
 	@Bean
-	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-		return config.getAuthenticationManager();
+	public PasswordEncoder passwordEncoder() {
+		Map<String, PasswordEncoder> encoders = new HashMap<>();
+		encoders.put("bcrypt", new BCryptPasswordEncoder());
+		encoders.put("pbkdf2@SpringSecurity_v5_8", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8());
+		encoders.put("scrypt@SpringSecurity_v5_8", SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8());
+		encoders.put("argon2@SpringSecurity_v5_8", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8());
+		PasswordEncoder passwordEncoder = new DelegatingPasswordEncoder("bcrypt", encoders);
+		return passwordEncoder;
 	}
-	
-	@Bean
-	public AuthenticationProvider authenticationProvider() {
-	    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-	    authProvider.setUserDetailsService(userDetailsService);
-	    authProvider.setPasswordEncoder(passwordEncoder);
-	    return authProvider;
-	}
-
-	
-	/*@Bean
-    public InMemoryUserDetailsManager userDetailsService() {
-        UserDetails user = User.builder()
-            .username(this.username)
-            .password(passwordEncoder.encode(this.password))
-            .roles("ADMIN")
-            .build();
-        return new InMemoryUserDetailsManager(user);
-    }*/
 }

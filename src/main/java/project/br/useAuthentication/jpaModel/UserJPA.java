@@ -3,12 +3,15 @@ package project.br.useAuthentication.jpaModel;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,12 +35,12 @@ public class UserJPA implements UserDetails{
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_sequence")
-	@SequenceGenerator(name="user_sequence", sequenceName="user_seq",  allocationSize = 1, initialValue = 5)
+	@SequenceGenerator(name="user_sequence", sequenceName="user_seq",  allocationSize = 1, initialValue = 4)
 	@Column(name="id")
 	private Long _id;
 	
 	@Column(name="username")
-	@NotBlank(message="Name: Campo obrigatório") 
+	@NotBlank(message="Name: Campo obrigatório")
 	private String _username;
 	
 	@Column(name="email", unique=true)
@@ -49,16 +52,16 @@ public class UserJPA implements UserDetails{
 	@NotBlank(message="Password: Campo obrigatório")
 	private String _password;
 	
-	@Temporal(TemporalType.DATE) 
+	@Temporal(TemporalType.DATE)
 	@Column(name="datanasc")
 	@Past(message = "Birthdate should be in the past")
 	@NotNull(message="Date: Campo obrigatório")
 	private Date _datanasc;
 	
-	@ManyToMany
+	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name="User_Roles", 
 	joinColumns= @JoinColumn(name="user_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
-	private List<RoleJPA> roles;
+	private Set<RoleJPA> _roles;
 	
 	public UserJPA() {
 		
@@ -70,10 +73,11 @@ public class UserJPA implements UserDetails{
 		this._password = user.getPassword();
 		this._email = user.getEmail();
 		this._datanasc = user.getDatanasc();
+		this._roles = user.getRoles();
 	}
-	
+		
 	public Collection<? extends GrantedAuthority> getAuthorities(){
-		return this.roles;
+		return this._roles;
 	}
 	public boolean isAccountNonExpired() {
 		return true;
@@ -88,6 +92,12 @@ public class UserJPA implements UserDetails{
 		return true;
 	}
 	
+	public Set<RoleJPA> getRoles() {
+		return this._roles;
+	}
+	public void setRoles(Set<RoleJPA> roles) {
+		this._roles = roles;
+	}
 	public Long getId() {
 		return _id;
 	}

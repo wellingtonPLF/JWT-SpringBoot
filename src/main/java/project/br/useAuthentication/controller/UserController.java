@@ -1,6 +1,7 @@
 package project.br.useAuthentication.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,32 +23,38 @@ public class UserController {
 	
 	@Autowired
 	private UserService userService;
-
+	
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@GetMapping("/usuarios")
 	public StatusResult<?> findAll() {
 		return this.userService.listAll();
 	}
 	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/usuarios/{id}")
 	public StatusResult<?> findById(@PathVariable("id") Long id) {
 		return this.userService.pesquisarPorID(id);
 	}
 	
+	@PreAuthorize("hasRole('ROLE_USER')")
 	@GetMapping("/usuarios/validarSenha")
 	public StatusResult<?> validarSenhaPorEmail(@RequestParam String username, @RequestParam String password) {
 		return this.userService.validarSenhaPorEmail(username, password);
 	}
 	
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PostMapping("/usuarios")
 	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
 		return this.userService.inserirOuAtualizar(user);
 	}
 	
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PutMapping("/usuarios")
 	public StatusResult<?> update(@Valid @RequestBody UserDTO user) {
 		return this.userService.inserirOuAtualizar(user);
 	}
 	
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@DeleteMapping("/usuarios/{id}")
 	public StatusResult<?> delete(@PathVariable("id") Long id) {	
 		return this.userService.apagar(id);

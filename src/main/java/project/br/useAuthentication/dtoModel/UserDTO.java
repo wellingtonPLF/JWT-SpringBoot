@@ -1,7 +1,10 @@
 package project.br.useAuthentication.dtoModel;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
+import project.br.useAuthentication.jpaModel.RoleJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
 
 public class UserDTO {
@@ -11,17 +14,19 @@ public class UserDTO {
 	private String password;
 	private String email;
 	private Date datanasc;
+	private Set<RoleJPA> roles;
 	
 	public UserDTO() {
 		
 	}
 	
-	public UserDTO(Long id, String name, String password, String email, Date datanasc) {
+	public UserDTO(Long id, String name, String password, String email, Date datanasc, Set<RoleJPA> roles) {
 		this.id = id;
 		this.name = name;
 		this.password = password;
 		this.email = email;
 		this.datanasc = datanasc;
+		this.roles = roles;
 	}
 	
 	public UserDTO(UserJPA user) {
@@ -30,6 +35,7 @@ public class UserDTO {
 		this.password = user.getPassword();
 		this.email = user.getEmail();
 		this.datanasc = user.getDatanasc();
+		this.roles = user.getRoles();
 	}
 	
 	public Long getId() {
@@ -61,6 +67,12 @@ public class UserDTO {
 	}
 	public void setEmail(String email) {
 		this.email = email;
+	}
+	public Set<RoleJPA> getRoles() {
+		return roles;
+	}
+	public void setRoles(Set<RoleJPA> roles) {
+		this.roles = roles;
 	}
 
 	@Override
