@@ -47,9 +47,9 @@ public class UserService implements UserDetailsService{
 	}
 	
 	@Override
-	public UserDetails loadUserByUsername(String username)  throws UsernameNotFoundException {
+	public UserDTO loadUserByUsername(String username)  throws UsernameNotFoundException {
 		try {
-			UserJPA user = this.userRepository.findBy_username(username);
+			UserDTO user = new UserDTO(this.userRepository.findBy_username(username));
 			return user;
 		}
 		catch (Exception e) {
@@ -58,9 +58,9 @@ public class UserService implements UserDetailsService{
 	}
 	
 	//Delete this
-	public StatusResult<?> validarSenhaPorEmail(String username, String password) {
+	/*public StatusResult<?> validarSenhaPorEmail(String username, String password) {
 		try {
-			UserDTO user = new UserDTO(this.userRepository.findBy_email(username));
+			UserDTO user = new UserDTO(this.userRepository.findBy_email(username).orElseThrow());
 			Boolean valid = this.encoder.matches(password, user.getPassword());
 			if(!valid) {
 				throw new Exception();
@@ -70,7 +70,7 @@ public class UserService implements UserDetailsService{
 		catch(Exception e) {
 			throw new UnAuthorizedExceptionResult("Incorret Username or Password , try again.");
 		}
-	}
+	}*/
 	
 	//When user id isn't passed, it will work as POST; When user id is passed, it will work as PUT;
 	@Transactional

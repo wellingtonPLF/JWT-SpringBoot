@@ -1,42 +1,38 @@
-package project.br.useAuthentication;
+package project.br.useAuthentication.config;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.DelegatingPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
 import org.springframework.security.crypto.scrypt.SCryptPasswordEncoder;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-@Configuration
-@EnableMethodSecurity
-public class SecurityConfig {
+@Configuration 
+public class AppConfig {
 	
-	private static final String[] PERMIT_LIST_URLS = {
-			"/usuarios"
-	};
-	
-	@Bean
-	public SecurityFilterChain securityASFilterChain (HttpSecurity http) throws Exception {
-		http
-        .csrf().disable()
-        .authorizeHttpRequests()
-        .requestMatchers(HttpMethod.POST, PERMIT_LIST_URLS).permitAll()
-        .anyRequest().authenticated()
-            .and()
-        .httpBasic();
-		return http.build();
-	}
-	
-	@Bean
+   @Value("${config.cors.url}")
+   private String url;
+      	
+   @Bean 
+   public WebMvcConfigurer corsConfigurer() {
+       return new WebMvcConfigurer() {
+           @Override public void addCorsMappings(CorsRegistry registry) {
+               registry.addMapping("/**")
+               .allowedOrigins(url)
+               .allowedMethods("GET", "POST", "PUT", "DELETE");
+           }
+       };
+   }
+   
+   @Bean
 	public PasswordEncoder passwordEncoder() {
 		Map<String, PasswordEncoder> encoders = new HashMap<>();
 		encoders.put("bcrypt", new BCryptPasswordEncoder());

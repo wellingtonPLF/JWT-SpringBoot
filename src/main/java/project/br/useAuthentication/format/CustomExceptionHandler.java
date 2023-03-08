@@ -12,6 +12,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import project.br.useAuthentication.exception.BadRequestExceptionResult;
+import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.exception.UnAuthorizedExceptionResult;
@@ -31,6 +32,13 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 		ErrorResponse<String> error = new ErrorResponse<String>(message.getLocalizedMessage(), 
 				HttpStatus.INTERNAL_SERVER_ERROR.value());
 		return new ResponseEntity<ErrorResponse<String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
+	
+	@ExceptionHandler(ExpiredJwtExceptionResult.class)
+	public final ResponseEntity<?> handleExpiredJwtExceptions(ExpiredJwtExceptionResult message){
+		ErrorResponse<String> error = new ErrorResponse<String>(message.getLocalizedMessage(), 
+				HttpStatus.UNAUTHORIZED.value());
+		return new ResponseEntity<ErrorResponse<String>>(error, HttpStatus.UNAUTHORIZED);
 	}
 	
 	@ExceptionHandler(NotFoundExceptionResult.class)

@@ -28,7 +28,7 @@ public class RoleJPA implements GrantedAuthority{
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name="id")
+	@Column(name="idrole")
 	private Long _id;
 	
 	@Enumerated(EnumType.STRING)
