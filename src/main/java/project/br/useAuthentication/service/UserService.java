@@ -57,6 +57,7 @@ public class UserService implements UserDetailsService{
 		}
 	}
 	
+	//Delete this
 	public StatusResult<?> validarSenhaPorEmail(String username, String password) {
 		try {
 			UserDTO user = new UserDTO(this.userRepository.findBy_email(username));

@@ -42,7 +42,7 @@ public class UserController {
 		return this.userService.validarSenhaPorEmail(username, password);
 	}
 	
-	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
+	@PreAuthorize("permitAll()")
 	@PostMapping("/usuarios")
 	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
 		return this.userService.inserirOuAtualizar(user);
