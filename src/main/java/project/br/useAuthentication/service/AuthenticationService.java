@@ -2,8 +2,6 @@ package project.br.useAuthentication.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,9 +27,6 @@ public class AuthenticationService {
 	private TokenRepository tokenRepository;
 	@Autowired
 	private JwtService jwtService;
-	
-	/*@Autowired
-	private AuthenticationManager authenticationManager;*/
 
 	public StatusResult<?> register(UserDTO request) {
 		if (request.getPassword() != null) {
@@ -40,10 +35,11 @@ public class AuthenticationService {
 			}
 		}
 		request.setPassword(this.passwordEncoder.encode(request.getPassword()));
-		var savedUser = new UserDTO(repository.save(new UserJPA(request)));
-	    var jwtToken = jwtService.generateToken(savedUser);
-	    saveUserToken(savedUser, jwtToken);
-	    return new StatusResult<String>(HttpStatus.OK.value(), jwtToken);
+		repository.save(new UserJPA(request));
+		//UserDTO savedUser = new UserDTO(user);
+	    //String jwtToken = jwtService.generateToken(savedUser);
+	    //saveUserToken(savedUser, jwtToken);
+	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing Up was Successfully made it.");
 	}
 
 	public StatusResult<?> authenticate(AuthDTO request) {
@@ -53,10 +49,6 @@ public class AuthenticationService {
 			if(!valid) {
 				throw new Exception();
 			}
-			//var authManager = new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword());
-			System.out.println("Ok 1");
-			//this.authenticationManager.authenticate(authManager);
-			System.out.println("Ok 2");
 			var jwtToken = jwtService.generateToken(user);
 			revokeAllUserTokens(user);
 			saveUserToken(user, jwtToken);

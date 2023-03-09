@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,8 +18,6 @@ import project.br.useAuthentication.service.LogOutService;
 @EnableMethodSecurity
 public class SecurityConfig {
 	
-	/*@Autowired
-	private AuthenticationProvider authenticationProvider;*/
 	@Autowired
 	private JwtAuthenticationFilter jwtAuthFilter;
 	@Autowired
@@ -36,18 +33,15 @@ public class SecurityConfig {
         .csrf().disable()
         .authorizeHttpRequests()
         .requestMatchers(HttpMethod.POST, PERMIT_LIST_URLS).permitAll()
-        //.requestMatchers("/usuarios/validarSenha").permitAll()
+        .requestMatchers("/usuarios/authentication").permitAll()
         .anyRequest().authenticated()
-        //    .and()
-        //.httpBasic();
         .and()
         .sessionManagement()
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and()
-        //.authenticationProvider(authenticationProvider)
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
         .logout()
-        .logoutUrl("/usuarios/logout")
+        .logoutUrl("/usuarios/logout") // Will work as a controller
         .addLogoutHandler(logoutHandler)
         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext());
 		return http.build();

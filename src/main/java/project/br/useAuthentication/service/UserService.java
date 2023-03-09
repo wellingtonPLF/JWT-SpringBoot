@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,7 +14,6 @@ import org.springframework.transaction.annotation.Transactional;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
-import project.br.useAuthentication.exception.UnAuthorizedExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.UserRepository;
@@ -40,7 +38,7 @@ public class UserService implements UserDetailsService{
 		}
 	}
 	
-	public StatusResult<?> pesquisarPorID(Long id) {
+	public StatusResult<?> findById(Long id) {
 		UserDTO user = new UserDTO(this.userRepository.findById(id).
 				orElseThrow(() -> new NotFoundExceptionResult("The requested Id was not found."))); 
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
@@ -56,25 +54,9 @@ public class UserService implements UserDetailsService{
 			throw new UsernameNotFoundException("User not Found: " + username);
 		}
 	}
-	
-	//Delete this
-	/*public StatusResult<?> validarSenhaPorEmail(String username, String password) {
-		try {
-			UserDTO user = new UserDTO(this.userRepository.findBy_email(username).orElseThrow());
-			Boolean valid = this.encoder.matches(password, user.getPassword());
-			if(!valid) {
-				throw new Exception();
-			}
-			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
-		}
-		catch(Exception e) {
-			throw new UnAuthorizedExceptionResult("Incorret Username or Password , try again.");
-		}
-	}*/
-	
-	//When user id isn't passed, it will work as POST; When user id is passed, it will work as PUT;
+		
 	@Transactional
-	public StatusResult<?> inserirOuAtualizar(UserDTO user) {
+	public StatusResult<?> update(UserDTO user) {
 		if (user.getPassword() != null) {
 			if (user.getPassword().length() < 8) {
 				throw new IllegalArgumentException("Password Not Valid");
@@ -86,7 +68,7 @@ public class UserService implements UserDetailsService{
 
 	}
 	
-	public StatusResult<?> apagar(Long id) {
+	public StatusResult<?> remove(Long id) {
 		try {
 			this.userRepository.deleteById(id);
 			return new StatusResult<HttpStatus>(HttpStatus.OK.value(), HttpStatus.OK);

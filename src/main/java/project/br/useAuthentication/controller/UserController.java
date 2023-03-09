@@ -16,6 +16,7 @@ import project.br.useAuthentication.dtoModel.AuthDTO;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.service.AuthenticationService;
+import project.br.useAuthentication.service.LogOutService;
 import project.br.useAuthentication.service.UserService;
 
 @RestController
@@ -27,7 +28,7 @@ public class UserController {
 	
 	@Autowired
 	private AuthenticationService authService;
-	
+		
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@GetMapping("/usuarios")
 	public StatusResult<?> findAll() {
@@ -37,12 +38,11 @@ public class UserController {
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@GetMapping("/usuarios/{id}")
 	public StatusResult<?> findById(@PathVariable("id") Long id) {
-		return this.userService.pesquisarPorID(id);
+		return this.userService.findById(id);
 	}
 	
-	@PreAuthorize("hasRole('ROLE_USER')")
-	//@PreAuthorize("permitAll()")
-	@GetMapping("/usuarios/validarSenha")
+	@PreAuthorize("permitAll()")
+	@GetMapping("/usuarios/authentication")
 	public StatusResult<?> authentication(@RequestBody AuthDTO auth) {
 		return this.authService.authenticate(auth);
 	}
@@ -53,27 +53,15 @@ public class UserController {
 		return this.authService.register(user);
 	}
 	
-	/*
-	public StatusResult<?> authentication(@RequestParam String username, @RequestParam String password) {
-		return this.userService.validarSenhaPorEmail(username, password);
-	}
-	*/
-		
-	/*@PreAuthorize("permitAll()")
-	@PostMapping("/usuarios")
-	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
-		return this.userService.inserirOuAtualizar(user);
-	}*/
-	
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PutMapping("/usuarios")
 	public StatusResult<?> update(@Valid @RequestBody UserDTO user) {
-		return this.userService.inserirOuAtualizar(user);
+		return this.userService.update(user);
 	}
 	
 	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	@DeleteMapping("/usuarios/{id}")
 	public StatusResult<?> delete(@PathVariable("id") Long id) {	
-		return this.userService.apagar(id);
+		return this.userService.remove(id);
 	}
 }

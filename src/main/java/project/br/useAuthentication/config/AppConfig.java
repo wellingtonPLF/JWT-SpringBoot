@@ -33,7 +33,7 @@ public class AppConfig {
    }
    
    @Bean
-	public PasswordEncoder passwordEncoder() {
+   public PasswordEncoder passwordEncoder() {
 		Map<String, PasswordEncoder> encoders = new HashMap<>();
 		encoders.put("bcrypt", new BCryptPasswordEncoder());
 		encoders.put("pbkdf2@SpringSecurity_v5_8", Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8());
@@ -41,5 +41,5 @@ public class AppConfig {
 		encoders.put("argon2@SpringSecurity_v5_8", Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8());
 		PasswordEncoder passwordEncoder = new DelegatingPasswordEncoder("bcrypt", encoders);
 		return passwordEncoder;
-	}
+   }
 }
