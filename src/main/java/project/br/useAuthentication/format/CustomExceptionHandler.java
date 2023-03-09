@@ -40,7 +40,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 				HttpStatus.UNAUTHORIZED.value());
 		return new ResponseEntity<ErrorResponse<String>>(error, HttpStatus.UNAUTHORIZED);
 	}
-	
+
 	@ExceptionHandler(NotFoundExceptionResult.class)
 	public final ResponseEntity<?> handleNotFoundExceptions(NotFoundExceptionResult message) {
 		ErrorResponse<String> error = new ErrorResponse<String>(message.getLocalizedMessage(), 

@@ -3,6 +3,8 @@ config:
     url: ${URL_CORS}
 
 security:
+  jwt:
+    secretKey: ${SECRET_KEY}
   auth:
     username: ${USERNAME_AUTH}
     password: ${PASSWORD_AUTH}

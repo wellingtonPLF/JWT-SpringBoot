@@ -6,10 +6,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -20,7 +20,8 @@ import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
 @Service
 public class JwtService {
 	
-	private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+	@Value("${security.jwt.secretKey}")
+	private String SECRET_KEY;
 
 	public String extractUsername(String token) {
 		return extractClaim(token, Claims::getSubject);
@@ -36,12 +37,17 @@ public class JwtService {
 	}
 	
 	private Claims extractAllClaims(String token) {
+		try {
 		return Jwts
 		        .parserBuilder()
 		        .setSigningKey(getSignInKey())
 		        .build()
 		        .parseClaimsJws(token)
-		        .getBody();    
+		        .getBody();
+		}
+		catch(Exception e) {
+			throw new ExpiredJwtExceptionResult("Expired Token");
+		}
 	}
 
 	private Key getSignInKey() {

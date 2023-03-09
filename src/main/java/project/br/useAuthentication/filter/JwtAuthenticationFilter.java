@@ -3,12 +3,14 @@ package project.br.useAuthentication.filter;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -22,6 +24,9 @@ import project.br.useAuthentication.service.UserService;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	
+	@Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
 	@Autowired
 	private JwtService jwtService;
 	@Autowired
@@ -41,21 +46,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		jwt = authHeader.substring(7);
-		userEmail = jwtService.extractUsername(jwt);
-		if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDTO userDetails = this.userDetailsService.loadUserByUsername(userEmail);
-			var isTokenValid = tokenRepository.findByToken(jwt)
-					.map(t -> !t.isExpired() && !t.isRevoked())
-					.orElse(false);
-			if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
-				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-				authToken.setDetails(
-						new WebAuthenticationDetailsSource().buildDetails(request)
-						);
-				SecurityContextHolder.getContext().setAuthentication(authToken);
+		try {
+			jwt = authHeader.substring(7);
+			userEmail = jwtService.extractUsername(jwt);
+			if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+				UserDTO userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+				var isTokenValid = tokenRepository.findByToken(jwt)
+						.map(t -> !t.isExpired() && !t.isRevoked())
+						.orElse(false);
+				if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
+					var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+					authToken.setDetails(
+							new WebAuthenticationDetailsSource().buildDetails(request)
+							);
+					SecurityContextHolder.getContext().setAuthentication(authToken);
+				}
 			}
+			filterChain.doFilter(request, response);
 		}
-		filterChain.doFilter(request, response);
+		catch(Exception e) {
+			resolver.resolveException(request, response, null, e);
+		}
 	}	
 }
