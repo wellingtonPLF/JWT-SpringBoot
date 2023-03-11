@@ -56,7 +56,7 @@ public class UserController {
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PutMapping("/usuarios")
 	public StatusResult<?> update(@Valid @RequestBody UserDTO user) {
-		return this.userService.update(user);
+		return this.userService.insertUpdate(user);
 	}
 	
 	@PreAuthorize("hasRole('ROLE_ADMIN')")

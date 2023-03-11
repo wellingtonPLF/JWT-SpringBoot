@@ -14,7 +14,6 @@ import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.TokenRepository;
-import project.br.useAuthentication.repository.UserRepository;
 
 @Service
 public class AuthenticationService {
@@ -22,29 +21,20 @@ public class AuthenticationService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired
-	private UserRepository repository;
+	private UserService userService;
 	@Autowired
 	private TokenRepository tokenRepository;
 	@Autowired
 	private JwtService jwtService;
 
 	public StatusResult<?> register(UserDTO request) {
-		if (request.getPassword() != null) {
-			if (request.getPassword().length() < 8) {
-				throw new IllegalArgumentException("Password Not Valid");
-			}
-		}
-		request.setPassword(this.passwordEncoder.encode(request.getPassword()));
-		repository.save(new UserJPA(request));
-		//UserDTO savedUser = new UserDTO(user);
-	    //String jwtToken = jwtService.generateToken(savedUser);
-	    //saveUserToken(savedUser, jwtToken);
+		this.userService.insertUpdate(request);
 	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing Up was Successfully made it.");
 	}
 
 	public StatusResult<?> authenticate(AuthDTO request) {
 		try {
-			UserDTO user = new UserDTO(this.repository.findBy_email(request.getEmail()).orElseThrow());
+			UserDTO user = this.userService.loadUserByEmail(request.getEmail());
 			Boolean valid = this.passwordEncoder.matches(request.getPassword(), user.getPassword());
 			if(!valid) {
 				throw new Exception();

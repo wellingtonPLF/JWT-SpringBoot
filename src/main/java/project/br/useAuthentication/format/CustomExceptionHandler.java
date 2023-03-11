@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
@@ -40,7 +41,14 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
 				HttpStatus.UNAUTHORIZED.value());
 		return new ResponseEntity<ErrorResponse<String>>(error, HttpStatus.UNAUTHORIZED);
 	}
-
+	
+	@ExceptionHandler(UsernameNotFoundException.class)
+	public final ResponseEntity<?> handleUsernameNotFoundExceptions(UsernameNotFoundException message){
+		ErrorResponse<String> error = new ErrorResponse<String>(message.getLocalizedMessage(), 
+				HttpStatus.NOT_FOUND.value());
+		return new ResponseEntity<ErrorResponse<String>>(error, HttpStatus.NOT_FOUND);
+	}
+	
 	@ExceptionHandler(NotFoundExceptionResult.class)
 	public final ResponseEntity<?> handleNotFoundExceptions(NotFoundExceptionResult message) {
 		ErrorResponse<String> error = new ErrorResponse<String>(message.getLocalizedMessage(), 

@@ -5,9 +5,9 @@ config:
 security:
   jwt:
     secretKey: ${SECRET_KEY}
-  auth:
-    username: ${USERNAME_AUTH}
-    password: ${PASSWORD_AUTH}
+#  auth: # InMemory
+#    username: ${USERNAME_AUTH}
+#    password: ${PASSWORD_AUTH}
 
 spring:
   profiles:

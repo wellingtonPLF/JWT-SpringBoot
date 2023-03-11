@@ -37,15 +37,25 @@ public class UserService implements UserDetailsService{
 			throw new InternalExceptionResult("Something Went Wrong!");
 		}
 	}
-	
+		
 	public StatusResult<?> findById(Long id) {
 		UserDTO user = new UserDTO(this.userRepository.findById(id).
 				orElseThrow(() -> new NotFoundExceptionResult("The requested Id was not found."))); 
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
+	public UserDTO loadUserByEmail(String email) throws UsernameNotFoundException {
+		try {
+			UserDTO user = new UserDTO(this.userRepository.findBy_email(email).orElseThrow());
+			return user;
+		}
+		catch (Exception e) {
+			throw new UsernameNotFoundException("User not Found: " + email);
+		}
+	}
+	
 	@Override
-	public UserDTO loadUserByUsername(String username)  throws UsernameNotFoundException {
+	public UserDTO loadUserByUsername(String username) throws UsernameNotFoundException {
 		try {
 			UserDTO user = new UserDTO(this.userRepository.findBy_username(username));
 			return user;
@@ -54,9 +64,9 @@ public class UserService implements UserDetailsService{
 			throw new UsernameNotFoundException("User not Found: " + username);
 		}
 	}
-		
+
 	@Transactional
-	public StatusResult<?> update(UserDTO user) {
+	public StatusResult<?> insertUpdate(UserDTO user) {
 		if (user.getPassword() != null) {
 			if (user.getPassword().length() < 8) {
 				throw new IllegalArgumentException("Password Not Valid");
