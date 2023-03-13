@@ -17,6 +17,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
+import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.service.JwtService;
 import project.br.useAuthentication.service.UserService;
@@ -41,27 +42,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		
 		final String authHeader = request.getHeader("Authorization");
 		final String jwt;
-		final String userName;
+		final Object userName;
 		if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 		try {
 			jwt = authHeader.substring(7);
-			userName = jwtService.extractUsername(jwt); //Testa a expiração
-			if (userName != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				UserDTO userDetails = this.userDetailsService.loadUserByUsername(userName);
-				var isTokenValid = tokenRepository.findByToken(jwt)
-						.map(t -> !t.isExpired() && !t.isRevoked())
-						.orElse(false);
-				if (jwtService.isTokenValid(jwt, userDetails) && isTokenValid) {
-					//BasicAuth
-					var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-					authToken.setDetails(
-							new WebAuthenticationDetailsSource().buildDetails(request)
-							);
-					SecurityContextHolder.getContext().setAuthentication(authToken);
-				}
+			userName = jwtService.extractUsername(jwt); //(Expired == true) ? null : "userName"
+			var isTokenValid = tokenRepository.findByToken(jwt)
+					.map(t -> !t.isExpired() && !t.isRevoked())
+					.orElse(false);
+			if (userName != null && isTokenValid) {
+				UserDTO userDetails = this.userDetailsService.loadUserByUsername((String) userName); //Exception UserNotFound
+				//BasicAuth
+				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
+				authToken.setDetails(
+						new WebAuthenticationDetailsSource().buildDetails(request)
+						);
+				SecurityContextHolder.getContext().setAuthentication(authToken);
+			}
+			else {
+				throw new ExpiredJwtExceptionResult("Token is not valid");
 			}
 			filterChain.doFilter(request, response);
 		}

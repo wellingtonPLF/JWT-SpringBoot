@@ -26,28 +26,24 @@ public class JwtService {
 	public String extractUsername(String token) {
 		return extractClaim(token, Claims::getSubject);
 	}
-
-	private Date extractExpiration(String token) {
-	    return extractClaim(token, Claims::getExpiration);
-	}
 	
 	public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-	    final Claims claims = extractAllClaims(token);
-	    return claimsResolver.apply(claims);
+	    try{
+	    	final Claims claims = extractAllClaims(token);
+	    	return claimsResolver.apply(claims);
+	    }
+	    catch(Exception e) {
+	    	return null;
+	    }
 	}
 	
 	private Claims extractAllClaims(String token) {
-		try {
 		return Jwts
 		        .parserBuilder()
 		        .setSigningKey(getSignInKey())
 		        .build()
 		        .parseClaimsJws(token)
 		        .getBody();
-		}
-		catch(Exception e) {
-			throw new ExpiredJwtExceptionResult("Expired Token");
-		}
 	}
 
 	private Key getSignInKey() {
@@ -62,17 +58,8 @@ public class JwtService {
 	        .setClaims(extraClaims)
 	        .setSubject(userDetails.getUsername())
 	        .setIssuedAt(new Date(System.currentTimeMillis()))
-	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 3600 * 24)) //24h
+	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 2)) //[1000] 60seg 60seg 24h 
 	        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
 	        .compact();
 	  }
-	
-	public boolean isTokenValid(String token, UserDTO userDetails) {
-	    final String username = extractUsername(token);
-	    return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
-	}
-
-	private boolean isTokenExpired(String token) {
-	    return extractExpiration(token).before(new Date());
-	}
 }
