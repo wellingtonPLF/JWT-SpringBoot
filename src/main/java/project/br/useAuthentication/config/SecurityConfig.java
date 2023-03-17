@@ -24,16 +24,16 @@ public class SecurityConfig {
 	private LogOutService logoutHandler;
 		
 	private static final String[] PERMIT_LIST_URLS = {
-			"/usuarios"
+			"/usuarios",
+			"/usuarios/authentication"
 	};
-	
+	//If not listed you will get CORS ERROR
 	@Bean
 	public SecurityFilterChain securityASFilterChain (HttpSecurity http) throws Exception {
 		http
         .csrf().disable()
         .authorizeHttpRequests()
         .requestMatchers(HttpMethod.POST, PERMIT_LIST_URLS).permitAll()
-        .requestMatchers("/usuarios/authentication").permitAll()
         .anyRequest().authenticated()
         .and()
         .sessionManagement()

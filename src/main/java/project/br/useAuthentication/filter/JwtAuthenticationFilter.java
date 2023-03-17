@@ -18,6 +18,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
+import project.br.useAuthentication.exception.RefreshTokenException;
+import project.br.useAuthentication.format.StatusResult;
+import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.service.JwtService;
 import project.br.useAuthentication.service.UserService;
@@ -42,19 +45,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		
 		final String authHeader = request.getHeader("Authorization");
 		final String jwt;
-		final Object userName;
+		final String userID;
+		System.out.println(authHeader);
 		if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
 		try {
 			jwt = authHeader.substring(7);
-			userName = jwtService.extractUsername(jwt); //(Expired == true) ? null : "userName"
-			var isTokenValid = tokenRepository.findByToken(jwt)
-					.map(t -> !t.isExpired() && !t.isRevoked())
-					.orElse(false);
-			if (userName != null && isTokenValid) {
-				UserDTO userDetails = this.userDetailsService.loadUserByUsername((String) userName); //Exception UserNotFound
+			TokenJPA token = tokenRepository.findByToken(jwt).orElseThrow(
+				() -> new ExpiredJwtExceptionResult("Token is not valid")
+			);
+			var isTokenValid = !token.isRevoked();
+			if (isTokenValid) {
+				userID = jwtService.extractSubject(jwt); //(Expired == true) ? null : "userID"
+				if (userID == null) {
+					//Refresh Token
+					//var newToken = this.jwtService.generateToken(new UserDTO(token.getUser()));
+					//throw new RefreshTokenException(newToken);
+					throw new ExpiredJwtExceptionResult("Expired Token");
+				}
+				StatusResult<?> result = this.userDetailsService.findById(Long.parseLong(userID)); //NotFoundExceptionResult
+				UserDTO userDetails = (UserDTO) result.getData();
 				//BasicAuth
 				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
 				authToken.setDetails(
@@ -63,7 +75,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 			else {
-				throw new ExpiredJwtExceptionResult("Token is not valid");
+				new ExpiredJwtExceptionResult("Token is not valid");
 			}
 			filterChain.doFilter(request, response);
 		}

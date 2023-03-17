@@ -39,30 +39,24 @@ public class UserService implements UserDetailsService{
 	}
 		
 	public StatusResult<?> findById(Long id) {
-		UserDTO user = new UserDTO(this.userRepository.findById(id).
-				orElseThrow(() -> new NotFoundExceptionResult("The requested Id was not found."))); 
+		UserDTO user = new UserDTO(this.userRepository.findById(id).orElseThrow(() -> 
+			new NotFoundExceptionResult("The requested Id was not found.")));
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
-	public UserDTO loadUserByEmail(String email) throws UsernameNotFoundException {
-		try {
-			UserDTO user = new UserDTO(this.userRepository.findBy_email(email).orElseThrow());
-			return user;
-		}
-		catch (Exception e) {
-			throw new UsernameNotFoundException("User not Found: " + email);
-		}
+	public UserDTO loadUserByEmail(String email) {
+		UserDTO user = new UserDTO(this.userRepository.findBy_email(email).orElseThrow(
+				() -> new UsernameNotFoundException("User not Found: " + email)
+		));
+		return user;
 	}
 	
 	@Override
-	public UserDTO loadUserByUsername(String username) throws UsernameNotFoundException {
-		try {
-			UserDTO user = new UserDTO(this.userRepository.findBy_username(username));
-			return user;
-		}
-		catch (Exception e) {
-			throw new UsernameNotFoundException("User not Found: " + username);
-		}
+	public UserDTO loadUserByUsername(String username) {
+		UserDTO user = new UserDTO(this.userRepository.findBy_username(username).orElseThrow(
+				() -> new UsernameNotFoundException("User not Found: " + username)
+		));
+		return user;
 	}
 
 	@Transactional

@@ -23,7 +23,7 @@ public class JwtService {
 	@Value("${security.jwt.secretKey}")
 	private String SECRET_KEY;
 
-	public String extractUsername(String token) {
+	public String extractSubject(String token) {
 		return extractClaim(token, Claims::getSubject);
 	}
 	
@@ -56,7 +56,7 @@ public class JwtService {
 	    return Jwts
 	        .builder()
 	        .setClaims(extraClaims)
-	        .setSubject(userDetails.getUsername())
+	        .setSubject(userDetails.getId().toString())
 	        .setIssuedAt(new Date(System.currentTimeMillis()))
 	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 2)) //[1000] 60seg 60seg 24h 
 	        .signWith(getSignInKey(), SignatureAlgorithm.HS256)

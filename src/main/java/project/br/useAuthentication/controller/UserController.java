@@ -42,7 +42,7 @@ public class UserController {
 	}
 	
 	@PreAuthorize("permitAll()")
-	@GetMapping("/usuarios/authentication")
+	@PostMapping("/usuarios/authentication")
 	public StatusResult<?> authentication(@RequestBody AuthDTO auth) {
 		return this.authService.authenticate(auth);
 	}
