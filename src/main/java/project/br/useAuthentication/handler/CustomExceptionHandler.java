@@ -1,4 +1,4 @@
-package project.br.useAuthentication.format;
+package project.br.useAuthentication.handler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +17,8 @@ import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.exception.RefreshTokenException;
+import project.br.useAuthentication.format.ErrorResponse;
+import project.br.useAuthentication.format.StatusResult;
 
 @ControllerAdvice
 public class CustomExceptionHandler extends ResponseEntityExceptionHandler {

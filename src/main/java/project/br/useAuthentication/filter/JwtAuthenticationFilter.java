@@ -11,9 +11,11 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.util.WebUtils;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
@@ -43,20 +45,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) 
 					throws ServletException, IOException {
 		
+		final Cookie cookie = WebUtils.getCookie(request, "token");
+		final String jwt = (cookie != null) ? cookie.getValue() : null;
+		final String userID;
+		/*
 		final String authHeader = request.getHeader("Authorization");
 		final String jwt;
-		final String userID;
-		System.out.println(authHeader);
 		if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
+		*/
 		try {
-			jwt = authHeader.substring(7);
-			TokenJPA token = tokenRepository.findByToken(jwt).orElseThrow(
-				() -> new ExpiredJwtExceptionResult("Token is not valid")
+			System.out.println("Cooki: " + jwt);
+			if (jwt == null) {
+				filterChain.doFilter(request, response);
+				return;
+			}
+			//jwt = authHeader.substring(7);
+			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
+				() -> new ExpiredJwtExceptionResult("Token is not valid not found on database")
 			);
-			var isTokenValid = !token.isRevoked();
+			var isTokenValid = !tokenDB.isRevoked();
 			if (isTokenValid) {
 				userID = jwtService.extractSubject(jwt); //(Expired == true) ? null : "userID"
 				if (userID == null) {
@@ -75,7 +85,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 			else {
-				new ExpiredJwtExceptionResult("Token is not valid");
+				new ExpiredJwtExceptionResult("Token is not valid: Something Went wrong");
 			}
 			filterChain.doFilter(request, response);
 		}
@@ -86,5 +96,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					null, 
 					e);
 		}
-	}	
+	}
 }

@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.AuthDTO;
 import project.br.useAuthentication.dtoModel.TokenDTO;
 import project.br.useAuthentication.dtoModel.UserDTO;
@@ -13,6 +14,7 @@ import project.br.useAuthentication.enumState.TokenType;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
+import project.br.useAuthentication.util.CookieUtil;
 
 @Service
 public class AuthenticationService {
@@ -25,6 +27,8 @@ public class AuthenticationService {
 	private TokenRepository tokenRepository;
 	@Autowired
 	private JwtService jwtService;
+	@Autowired
+	private HttpServletResponse httpServletResponse;
 
 	public StatusResult<?> register(UserDTO request) {
 		this.userService.insertUpdate(request);
@@ -39,9 +43,11 @@ public class AuthenticationService {
 				throw new Exception();
 			}
 			var jwtToken = jwtService.generateToken(user);
+			CookieUtil.create(httpServletResponse, "token", jwtToken, false, -1, "localhost");
 			revokeAllUserTokens(user);
 			saveUserToken(user, jwtToken);
-			return new StatusResult<String>(HttpStatus.OK.value(), jwtToken);
+			//return new StatusResult<String>(HttpStatus.OK.value(), jwtToken);
+			return new StatusResult<String>(HttpStatus.OK.value(), user.getId().toString());
 		}
 		catch (Exception e) {
 			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");

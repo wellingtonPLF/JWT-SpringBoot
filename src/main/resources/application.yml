@@ -1,16 +1,30 @@
+#CORS
 config:
   cors:
     url: ${URL_CORS}
 
+#JWT
 security:
   jwt:
     secretKey: ${SECRET_KEY}
-#  auth: # InMemory
-#    username: ${USERNAME_AUTH}
-#    password: ${PASSWORD_AUTH}
 
+#Intercalation + Spring Session
 spring:
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
+      schema: classpath:org/springframework/session/jdbc/schema-@@platform@@.sql
+      table-name: SPRING_SESSION
   profiles:
     active: ${APP_PROFILE:dev}
   jpa:
     open-in-view: false
+    
+#Session server
+server:
+  servlet:
+    session:
+      timeout: 20m
+      cookie:
+        http-only: true

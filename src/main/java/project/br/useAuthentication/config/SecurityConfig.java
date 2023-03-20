@@ -3,13 +3,15 @@ package project.br.useAuthentication.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import project.br.useAuthentication.filter.JwtAuthenticationFilter;
 import project.br.useAuthentication.service.LogOutService;
@@ -23,17 +25,27 @@ public class SecurityConfig {
 	@Autowired
 	private LogOutService logoutHandler;
 		
+	//If not listed you will get CORS error;
 	private static final String[] PERMIT_LIST_URLS = {
-			"/usuarios",
-			"/usuarios/authentication"
+			"/usuarios/**",
 	};
-	//If not listed you will get CORS ERROR
+	
+	@Bean
+    public SessionRegistry sessionRegistry(){
+        return  new SessionRegistryImpl();
+    }
+	
+	@Bean
+    public HttpSessionEventPublisher httpSessionEventPublisher(){
+        return  new HttpSessionEventPublisher();
+    }
+	
 	@Bean
 	public SecurityFilterChain securityASFilterChain (HttpSecurity http) throws Exception {
 		http
         .csrf().disable()
         .authorizeHttpRequests()
-        .requestMatchers(HttpMethod.POST, PERMIT_LIST_URLS).permitAll()
+        .requestMatchers(PERMIT_LIST_URLS).permitAll()
         .anyRequest().authenticated()
         .and()
         .sessionManagement()

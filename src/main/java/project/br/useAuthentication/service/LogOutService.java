@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.repository.TokenRepository;
+import project.br.useAuthentication.util.CookieUtil;
 
 @Service
 public class LogOutService implements LogoutHandler {
@@ -24,8 +25,8 @@ public class LogOutService implements LogoutHandler {
 	      return;
 	    }
 	    jwt = authHeader.substring(7);
-	    var storedToken = tokenRepository.findByToken(jwt)
-	        .orElse(null);
+	    var storedToken = tokenRepository.findByToken(jwt).orElse(null);
+	    CookieUtil.clear(response, "token");	    
 	    if (storedToken != null) {
 	      storedToken.setExpired(true);
 	      storedToken.setRevoked(true);
