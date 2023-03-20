@@ -6,6 +6,7 @@ config:
 #JWT
 security:
   jwt:
+    tokenName: token
     secretKey: ${SECRET_KEY}
 
 #Intercalation + Spring Session
@@ -14,8 +15,6 @@ spring:
     store-type: jdbc
     jdbc:
       initialize-schema: always
-      schema: classpath:org/springframework/session/jdbc/schema-@@platform@@.sql
-      table-name: SPRING_SESSION
   profiles:
     active: ${APP_PROFILE:dev}
   jpa:

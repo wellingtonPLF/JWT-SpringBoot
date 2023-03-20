@@ -1,5 +1,22 @@
-{"properties": [{
-  "name": "spring.session.store-type",
-  "type": "java.lang.String",
-  "description": "A description for 'spring.session.store-type'"
-}]}
+{"properties": [
+  {
+    "name": "spring.session.store-type",
+    "type": "java.lang.String",
+    "description": "A description for 'spring.session.store-type'"
+  },
+  {
+    "name": "security.jwt.token-name",
+    "type": "java.lang.String",
+    "description": "A description for 'security.jwt.token-name'"
+  },
+  {
+    "name": "security.jwt.secretKey",
+    "type": "java.lang.String",
+    "description": "A description for 'security.jwt.secretKey'"
+  },
+  {
+    "name": "config.cors.url",
+    "type": "java.lang.String",
+    "description": "A description for 'config.cors.url'"
+  }
+]}

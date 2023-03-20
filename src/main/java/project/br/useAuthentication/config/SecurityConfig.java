@@ -29,17 +29,7 @@ public class SecurityConfig {
 	private static final String[] PERMIT_LIST_URLS = {
 			"/usuarios/**",
 	};
-	
-	@Bean
-    public SessionRegistry sessionRegistry(){
-        return  new SessionRegistryImpl();
-    }
-	
-	@Bean
-    public HttpSessionEventPublisher httpSessionEventPublisher(){
-        return  new HttpSessionEventPublisher();
-    }
-	
+		
 	@Bean
 	public SecurityFilterChain securityASFilterChain (HttpSecurity http) throws Exception {
 		http

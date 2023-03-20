@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,7 +21,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
-import project.br.useAuthentication.exception.RefreshTokenException;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
@@ -39,43 +39,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private UserService userDetailsService;
 	@Autowired
 	private TokenRepository tokenRepository;
-
+	@Value("${security.jwt.tokenName}")
+	private String token;
+	
 	@Override
 	protected void doFilterInternal(
 			@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) 
 					throws ServletException, IOException {
 		
-		final Cookie cookie = WebUtils.getCookie(request, "token");
+		final Cookie cookie = WebUtils.getCookie(request, this.token);
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		final String userID;
-		/*
-		final String authHeader = request.getHeader("Authorization");
-		final String jwt;
-		if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
+		if (jwt == null) {
 			filterChain.doFilter(request, response);
 			return;
 		}
-		*/
 		try {
-			System.out.println("Cooki: " + jwt);
-			if (jwt == null) {
-				filterChain.doFilter(request, response);
-				return;
-			}
-			//jwt = authHeader.substring(7);
 			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
 				() -> new ExpiredJwtExceptionResult("Token is not valid not found on database")
 			);
 			var isTokenValid = !tokenDB.isRevoked();
 			if (isTokenValid) {
-				userID = jwtService.extractSubject(jwt); //(Expired == true) ? null : "userID"
+				// (Expired == true) ? null : "userID"
+				userID = jwtService.extractSubject(jwt); 
 				if (userID == null) {
-					//Refresh Token
-					//var newToken = this.jwtService.generateToken(new UserDTO(token.getUser()));
-					//throw new RefreshTokenException(newToken);
 					throw new ExpiredJwtExceptionResult("Expired Token");
 				}
-				StatusResult<?> result = this.userDetailsService.findById(Long.parseLong(userID)); //NotFoundExceptionResult
+				// NotFoundExceptionResult
+				StatusResult<?> result = this.userDetailsService.findById(Long.parseLong(userID)); 
 				UserDTO userDetails = (UserDTO) result.getData();
 				//BasicAuth
 				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
