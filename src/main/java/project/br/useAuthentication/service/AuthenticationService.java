@@ -35,7 +35,7 @@ public class AuthenticationService {
 
 	public StatusResult<?> register(UserDTO user) {
 		this.userService.insertUpdate(user);
-	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing Up was Successfully made it.");
+	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing up was successfully made it.");
 	}
 
 	public StatusResult<?> authenticate(AuthDTO auth) {
@@ -52,7 +52,7 @@ public class AuthenticationService {
 			return new StatusResult<String>(HttpStatus.OK.value(), user.getId().toString());
 		}
 		catch (Exception e) {
-			throw new UsernameNotFoundException("Incorrect Email or Password , try again." + auth.getPassword());
+			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
 		}
 	}
 

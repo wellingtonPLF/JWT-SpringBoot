@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) 
 					throws ServletException, IOException {
 		
-		final Cookie cookie = WebUtils.getCookie(request, this.token);
+		final Cookie cookie = WebUtils.getCookie(request, "token");
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		final String userID;
 		if (jwt == null) {
@@ -56,7 +56,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 		try {
 			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
-				() -> new ExpiredJwtExceptionResult("Token is not valid not found on database")
+				() -> new ExpiredJwtExceptionResult("Token is not valid")
 			);
 			var isTokenValid = !tokenDB.isRevoked();
 			if (isTokenValid) {
@@ -76,7 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 			else {
-				new ExpiredJwtExceptionResult("Token is not valid: Something Went wrong");
+				new ExpiredJwtExceptionResult("Token is not valid");
 			}
 			filterChain.doFilter(request, response);
 		}
