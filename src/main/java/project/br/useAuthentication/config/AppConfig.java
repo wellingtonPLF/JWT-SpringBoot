@@ -21,7 +21,7 @@ public class AppConfig {
    @Value("${config.cors.url}")
    private String url;
       	
-   @Bean 
+   @Bean
    public WebMvcConfigurer corsConfigurer() {
        return new WebMvcConfigurer() {
            @Override public void addCorsMappings(CorsRegistry registry) {

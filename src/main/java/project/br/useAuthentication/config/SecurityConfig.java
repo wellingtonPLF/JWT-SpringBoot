@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import project.br.useAuthentication.filter.JwtAuthenticationFilter;
+import project.br.useAuthentication.handler.JwtEntryPoint;
 import project.br.useAuthentication.service.LogOutService;
 
 @Configuration
@@ -23,9 +24,10 @@ public class SecurityConfig {
 	@Autowired
 	private JwtAuthenticationFilter jwtAuthFilter;
 	@Autowired
+    private JwtEntryPoint jwtEntryPoint;
+	@Autowired
 	private LogOutService logoutHandler;
 		
-	//If not listed you will get CORS error;
 	private static final String[] PERMIT_LIST_URLS = {
 			"/usuarios/**",
 	};
@@ -38,12 +40,14 @@ public class SecurityConfig {
         .requestMatchers(PERMIT_LIST_URLS).permitAll()
         .anyRequest().authenticated()
         .and()
+        .exceptionHandling().authenticationEntryPoint(jwtEntryPoint)
+        .and()
         .sessionManagement()
         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         .and()
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
         .logout()
-        .logoutUrl("/usuarios/logout") // Will work as a controller
+        .logoutUrl("/usuarios/logout")
         .addLogoutHandler(logoutHandler)
         .logoutSuccessHandler((request, response, authentication) -> SecurityContextHolder.clearContext());
 		return http.build();

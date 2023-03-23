@@ -1,9 +1,10 @@
-package project.br.useAuthentication.service;
+package project.br.useAuthentication.util;
 
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -18,13 +19,14 @@ import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
 
 @Service
-public class JwtService {
+public class JwtUtil {
 	
 	@Value("${security.jwt.secretKey}")
 	private String SECRET_KEY;
 
-	public String extractSubject(String token) {
-		return extractClaim(token, Claims::getSubject);
+	public Optional<String> extractSubject(String token) {
+		String sub = extractClaim(token, Claims::getSubject);
+		return Optional.ofNullable(sub);
 	}
 	
 	public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -58,7 +60,7 @@ public class JwtService {
 	        .setClaims(extraClaims)
 	        .setSubject(userDetails.getId().toString())
 	        .setIssuedAt(new Date(System.currentTimeMillis()))
-	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2)) //[1000] 60seg 60seg 24h 
+	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2)) //[1000] seg * min * hour 
 	        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
 	        .compact();
 	  }

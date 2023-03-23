@@ -20,12 +20,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
+import project.br.useAuthentication.enumState.RoleName;
 import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
-import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
-import project.br.useAuthentication.service.JwtService;
+import project.br.useAuthentication.repository.UserRepository;
 import project.br.useAuthentication.service.UserService;
+import project.br.useAuthentication.util.JwtUtil;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -34,9 +35,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Qualifier("handlerExceptionResolver")
     private HandlerExceptionResolver resolver;
 	@Autowired
-	private JwtService jwtService;
+	private JwtUtil jwtService;
 	@Autowired
 	private UserService userDetailsService;
+	@Autowired
+	private UserRepository userRepository;
 	@Autowired
 	private TokenRepository tokenRepository;
 	@Value("${security.jwt.tokenName}")
@@ -46,33 +49,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(
 			@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) 
 					throws ServletException, IOException {
-		
-		final Cookie cookie = WebUtils.getCookie(request, "token");
-		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		final String userID;
-		if (jwt == null) {
-			filterChain.doFilter(request, response);
-			return;
-		}
+		final Cookie cookie = WebUtils.getCookie(request, this.token);
+		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		try {
 			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
-				() -> new ExpiredJwtExceptionResult("Token is not valid")
+				() -> new Exception("Token not in Database, you must SignIn!")
 			);
-			var isTokenValid = !tokenDB.isRevoked();
+			Boolean isTokenValid = !tokenDB.isRevoked();
 			if (isTokenValid) {
-				// (Expired == true) ? null : "userID"
-				userID = jwtService.extractSubject(jwt); 
-				if (userID == null) {
-					throw new ExpiredJwtExceptionResult("Expired Token");
-				}
+				// (Expired == true) ? Exception : "userID"
+				userID = jwtService.extractSubject(jwt).orElseThrow(
+					() -> new Exception("Expired Token!")
+				);
 				// NotFoundExceptionResult
-				StatusResult<?> result = this.userDetailsService.findById(Long.parseLong(userID)); 
-				UserDTO userDetails = (UserDTO) result.getData();
+				var result = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
+					() -> new Exception("Sub userID not found!")
+				);
+				UserDTO userDetails = new UserDTO(result);
 				//BasicAuth
 				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
-				authToken.setDetails(
-						new WebAuthenticationDetailsSource().buildDetails(request)
-						);
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 			else {
@@ -81,11 +78,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			filterChain.doFilter(request, response);
 		}
 		catch(Exception e) {
+			//String x = RoleName.ROLE_ADMIN.toString();
+			response.setContentType(e.getLocalizedMessage());
 			resolver.resolveException(
-					request, 
-					response, 
-					null, 
-					e);
+				request, 
+				response, 
+				null, 
+			e);
+			filterChain.doFilter(request, response);
+			return;
 		}
 	}
 }

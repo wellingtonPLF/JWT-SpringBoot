@@ -48,6 +48,12 @@ public class UserController {
 	}
 	
 	@PreAuthorize("permitAll()")
+	@PostMapping("/usuarios/refresh")
+	public StatusResult<?> refresh() {
+		return this.authService.refresh();
+	}
+	
+	@PreAuthorize("permitAll()")
 	@PostMapping("/usuarios")
 	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
 		return this.authService.register(user);
