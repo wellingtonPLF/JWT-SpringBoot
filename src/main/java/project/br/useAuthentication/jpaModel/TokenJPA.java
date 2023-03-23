@@ -42,6 +42,14 @@ public class TokenJPA {
 
 	public TokenJPA() {}
 	
+	public TokenJPA(String token, TokenType tokenType, boolean revoked, boolean expired, UserJPA user) {
+		this.token = token;
+		this.tokenType = tokenType;
+		this.revoked = revoked;
+		this.expired = expired;
+		this.user = user;
+	}
+
 	public TokenJPA(TokenDTO token) {
 		this.id = token.getId();
 		this.user = new UserJPA(token.getUser());

@@ -17,9 +17,9 @@ public class UserDTO implements UserDetails {
 
 	private Long id;
 	private String name;
-	private String password;
 	private String email;
 	private Date datanasc;
+	private String password;
 	private Set<RoleJPA> roles;
 	private List<TokenJPA> tokens;
 	

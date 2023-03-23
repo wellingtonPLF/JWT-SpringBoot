@@ -10,7 +10,4 @@ public interface UserRepository extends JpaRepository<UserJPA, Long> {
 	
 	public Optional<UserJPA> findBy_username(String username);
 	public Optional<UserJPA> findBy_email(String email);
-	
-	//@Query("SELECT u FROM UserJPA u WHERE u._username = ?1")
-	//UserJPA getUserByName(String name);
 }

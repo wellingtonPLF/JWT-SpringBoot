@@ -6,9 +6,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.WebUtils;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import project.br.useAuthentication.enumState.JwtType;
+import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
+import project.br.useAuthentication.exception.FilterExceptionResult;
+import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.util.CookieUtil;
 
@@ -22,19 +28,13 @@ public class LogOutService implements LogoutHandler {
 
 	@Override
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-		final String authHeader = request.getHeader("Authorization");
-	    final String jwt;
-	    if (authHeader == null ||!authHeader.startsWith("Bearer ")) {
-	      return;
-	    }
-	    jwt = authHeader.substring(7);
-	    var storedToken = tokenRepository.findByToken(jwt).orElse(null);
+		final Cookie cookie = WebUtils.getCookie(request, this.token);
+		final String jwt = (cookie != null) ? cookie.getValue() : null;
+		TokenJPA jwtDB = tokenRepository.findByToken(jwt).orElseThrow(
+			() -> new AuthenticationExceptionResponse(JwtType.INVALID_AT.toString())
+		);
 	    CookieUtil.clear(response, this.token);	    
-	    if (storedToken != null) {
-	      storedToken.setExpired(true);
-	      storedToken.setRevoked(true);
-	      tokenRepository.save(storedToken);
-	      SecurityContextHolder.clearContext();
-	    }
+	    tokenRepository.deleteById(jwtDB.getId());;
+	    SecurityContextHolder.clearContext();
 	}
 }

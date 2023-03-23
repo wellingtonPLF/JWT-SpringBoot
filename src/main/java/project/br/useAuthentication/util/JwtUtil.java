@@ -16,7 +16,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import project.br.useAuthentication.dtoModel.UserDTO;
-import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
+import project.br.useAuthentication.enumState.TokenEnum;
 
 @Service
 public class JwtUtil {
@@ -53,14 +53,14 @@ public class JwtUtil {
 	    return Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	public String generateToken(UserDTO userDetails) {
+	public String generateToken(UserDTO userDetails, TokenEnum type) {
 		Map<String, Object> extraClaims = new HashMap<>();
 	    return Jwts
 	        .builder()
 	        .setClaims(extraClaims)
 	        .setSubject(userDetails.getId().toString())
 	        .setIssuedAt(new Date(System.currentTimeMillis()))
-	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 2)) //[1000] seg * min * hour 
+	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * type.getValue())) 
 	        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
 	        .compact();
 	  }

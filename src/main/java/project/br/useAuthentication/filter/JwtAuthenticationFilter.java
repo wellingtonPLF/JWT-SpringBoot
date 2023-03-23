@@ -20,12 +20,11 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
-import project.br.useAuthentication.enumState.RoleName;
-import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
+import project.br.useAuthentication.enumState.JwtType;
+import project.br.useAuthentication.exception.FilterExceptionResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.repository.UserRepository;
-import project.br.useAuthentication.service.UserService;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Component
@@ -36,8 +35,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private HandlerExceptionResolver resolver;
 	@Autowired
 	private JwtUtil jwtService;
-	@Autowired
-	private UserService userDetailsService;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
@@ -54,17 +51,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		try {
 			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
-				() -> new Exception("Token not in Database, you must SignIn!")
+				() -> new FilterExceptionResult(JwtType.INVALID_AT)
 			);
-			Boolean isTokenValid = !tokenDB.isRevoked();
-			if (isTokenValid) {
+			if (tokenDB != null) {
 				// (Expired == true) ? Exception : "userID"
 				userID = jwtService.extractSubject(jwt).orElseThrow(
-					() -> new Exception("Expired Token!")
+					() -> new FilterExceptionResult(JwtType.EXPIRED_AT)
 				);
 				// NotFoundExceptionResult
 				var result = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
-					() -> new Exception("Sub userID not found!")
+					() -> new FilterExceptionResult(JwtType.INVALID_USER)
 				);
 				UserDTO userDetails = new UserDTO(result);
 				//BasicAuth
@@ -73,13 +69,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContextHolder.getContext().setAuthentication(authToken);
 			}
 			else {
-				new ExpiredJwtExceptionResult("Token is not valid");
+				throw new FilterExceptionResult(JwtType.INVALID_AT);
 			}
 			filterChain.doFilter(request, response);
 		}
-		catch(Exception e) {
-			//String x = RoleName.ROLE_ADMIN.toString();
-			response.setContentType(e.getLocalizedMessage());
+		catch(FilterExceptionResult e) {
+			response.setContentType(e.getErrorCode().toString());
 			resolver.resolveException(
 				request, 
 				response, 

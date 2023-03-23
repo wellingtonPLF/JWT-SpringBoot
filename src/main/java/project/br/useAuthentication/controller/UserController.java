@@ -35,7 +35,7 @@ public class UserController {
 		return this.userService.listAll();
 	}
 	
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@GetMapping("/usuarios/{id}")
 	public StatusResult<?> findById(@PathVariable("id") Long id) {
 		return this.userService.findById(id);

@@ -11,7 +11,7 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import project.br.useAuthentication.exception.ExpiredJwtExceptionResult;
+import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 
 @Component
 public class JwtEntryPoint implements AuthenticationEntryPoint {
@@ -22,8 +22,7 @@ public class JwtEntryPoint implements AuthenticationEntryPoint {
 	
     @Override
     public void commence(HttpServletRequest req, HttpServletResponse res, AuthenticationException e) throws IOException {
-    	//Will Resolve AuthenticationException In CustomHandlerException
-    	ExpiredJwtExceptionResult x = new ExpiredJwtExceptionResult(res.getContentType());
-    	resolver.resolveException(req, res, null, x);
+    	AuthenticationExceptionResponse exception = new AuthenticationExceptionResponse(res.getContentType());
+    	resolver.resolveException(req, res, null, exception);
     }
 }
