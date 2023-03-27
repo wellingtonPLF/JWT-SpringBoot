@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import project.br.useAuthentication.dtoModel.AuthDTO;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.format.StatusResult;
+import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.service.AuthenticationService;
 import project.br.useAuthentication.service.LogOutService;
 import project.br.useAuthentication.service.UserService;
@@ -55,13 +56,13 @@ public class UserController {
 	
 	@PreAuthorize("permitAll()")
 	@PostMapping("/usuarios")
-	public StatusResult<?> insert(@Valid @RequestBody UserDTO user) {
+	public StatusResult<?> insert(@Valid @RequestBody UserJPA user) {
 		return this.authService.register(user);
 	}
 	
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PutMapping("/usuarios")
-	public StatusResult<?> update(@Valid @RequestBody UserDTO user) {
+	public StatusResult<?> update(@Valid @RequestBody UserJPA user) {
 		return this.userService.insertUpdate(user);
 	}
 	

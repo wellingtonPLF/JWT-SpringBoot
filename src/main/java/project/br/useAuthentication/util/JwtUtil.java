@@ -17,6 +17,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.TokenEnum;
+import project.br.useAuthentication.jpaModel.UserJPA;
 
 @Service
 public class JwtUtil {
@@ -53,7 +54,7 @@ public class JwtUtil {
 	    return Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	public String generateToken(UserDTO userDetails, TokenEnum type) {
+	public String generateToken(UserJPA userDetails, TokenEnum type) {
 		Map<String, Object> extraClaims = new HashMap<>();
 	    return Jwts
 	        .builder()

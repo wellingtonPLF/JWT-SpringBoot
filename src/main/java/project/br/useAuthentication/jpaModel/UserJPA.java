@@ -1,8 +1,12 @@
 package project.br.useAuthentication.jpaModel;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +18,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -26,7 +31,8 @@ import project.br.useAuthentication.dtoModel.UserDTO;
 
 @Entity
 @Table(name = "usuario")
-public class UserJPA {
+@SuppressWarnings("serial")
+public class UserJPA implements UserDetails {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_sequence")
@@ -53,8 +59,9 @@ public class UserJPA {
 	@NotNull(message="Date: Campo obrigatório")
 	private Date _datanasc;
 	
-	@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
-	private List<TokenJPA> _tokens;
+	@OneToOne(mappedBy = "user")
+	//@JsonBackReference(value="template_Janela_Compoe")
+	private TokenJPA _token;
 	
 	@ManyToMany(fetch = FetchType.EAGER)
 	@JoinTable(name="User_Roles", 
@@ -68,18 +75,31 @@ public class UserJPA {
 	public UserJPA(UserDTO user) {
 		this._id = user.getId();
 		this._username = user.getUsername();
-		this._password = user.getPassword();
 		this._email = user.getEmail();
 		this._datanasc = user.getDatanasc();
-		this._roles = user.getRoles();
-		this._tokens = user.getTokens();
+	}
+	
+	public Collection<? extends GrantedAuthority> getAuthorities(){
+		return this._roles;
+	}
+	public boolean isAccountNonExpired() {
+		return true;
+	}
+	public boolean isAccountNonLocked() {
+		return true;
+	}
+	public boolean isCredentialsNonExpired() {
+		return true;
+	}
+	public boolean isEnabled() {
+		return true;
 	}
 			
-	public List<TokenJPA> getTokens() {
-		return this._tokens;
+	public TokenJPA getToken() {
+		return this._token;
 	}
-	public void setTokens(List<TokenJPA> tokens) {
-		this._tokens = tokens;
+	public void setToken(TokenJPA token) {
+		this._token = token;
 	}
 	public Set<RoleJPA> getRoles() {
 		return this._roles;

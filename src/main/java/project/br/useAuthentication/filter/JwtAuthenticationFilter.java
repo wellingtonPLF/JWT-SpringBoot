@@ -19,10 +19,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.exception.FilterExceptionResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
+import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.repository.UserRepository;
 import project.br.useAuthentication.util.JwtUtil;
@@ -59,10 +59,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 					() -> new FilterExceptionResult(JwtType.EXPIRED_AT)
 				);
 				// NotFoundExceptionResult
-				var result = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
+				UserJPA userDetails = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
 					() -> new FilterExceptionResult(JwtType.INVALID_USER)
 				);
-				UserDTO userDetails = new UserDTO(result);
 				//BasicAuth
 				var authToken = new UsernamePasswordAuthenticationToken(userDetails,null,userDetails.getAuthorities());
 				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

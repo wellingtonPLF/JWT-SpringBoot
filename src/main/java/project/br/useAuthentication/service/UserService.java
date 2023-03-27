@@ -44,30 +44,30 @@ public class UserService implements UserDetailsService{
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 	
-	public UserDTO loadUserByEmail(String email) {
-		UserDTO user = new UserDTO(this.userRepository.findBy_email(email).orElseThrow(
+	public UserJPA loadUserByEmail(String email) {
+		UserJPA user = this.userRepository.findBy_email(email).orElseThrow(
 				() -> new UsernameNotFoundException("User not Found: " + email)
-		));
+		);
 		return user;
 	}
 	
 	@Override
-	public UserDTO loadUserByUsername(String username) {
-		UserDTO user = new UserDTO(this.userRepository.findBy_username(username).orElseThrow(
+	public UserJPA loadUserByUsername(String username) {
+		UserJPA user = this.userRepository.findBy_username(username).orElseThrow(
 				() -> new UsernameNotFoundException("User not Found: " + username)
-		));
+		);
 		return user;
 	}
 
 	@Transactional
-	public StatusResult<?> insertUpdate(UserDTO user) {
+	public StatusResult<?> insertUpdate(UserJPA user) {
 		if (user.getPassword() != null) {
 			if (user.getPassword().length() < 8) {
 				throw new IllegalArgumentException("Password Not Valid");
 			}
 		}
 		user.setPassword(this.encoder.encode(user.getPassword()));
-		UserDTO u = new UserDTO(this.userRepository.save(new UserJPA(user)));
+		UserDTO u = new UserDTO(this.userRepository.save(user));
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);			
 
 	}

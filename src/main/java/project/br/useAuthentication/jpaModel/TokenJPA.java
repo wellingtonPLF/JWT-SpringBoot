@@ -1,7 +1,5 @@
 package project.br.useAuthentication.jpaModel;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,9 +7,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import project.br.useAuthentication.dtoModel.TokenDTO;
 import project.br.useAuthentication.enumState.TokenType;
 
 @Entity
@@ -22,42 +19,25 @@ public class TokenJPA {
 	@Column(name="idtoken")
 	public Long id;
 
+	@OneToOne
+	@JoinColumn(name = "iduser", unique = true)
+	//@JsonManagedReference(value="template_Janela_Compoe")
+	//@JsonIgnore
+	public UserJPA user;
+	
 	@Column(name = "key", unique = true)
 	public String token;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name="type")
 	public TokenType tokenType = TokenType.BEARER;
-	
-	@Column(name="revoked")
-	public boolean revoked;
-
-	@Column(name="expired")
-	public boolean expired;
-
-	@ManyToOne
-	@JoinColumn(name = "iduser")
-	@JsonIgnore
-	public UserJPA user;
 
 	public TokenJPA() {}
 	
-	public TokenJPA(String token, TokenType tokenType, boolean revoked, boolean expired, UserJPA user) {
+	public TokenJPA(String token, TokenType tokenType, UserJPA user) {
 		this.token = token;
 		this.tokenType = tokenType;
-		this.revoked = revoked;
-		this.expired = expired;
 		this.user = user;
-	}
-
-	public TokenJPA(TokenDTO token) {
-		this.id = token.getId();
-		this.user = new UserJPA(token.getUser());
-		this.token = token.getToken();
-		this.tokenType = token.getTokenType();
-		this.expired = token.isExpired();
-		this.revoked = token.isRevoked();
-		
 	}
 	
 	public Long getId() {
@@ -82,22 +62,6 @@ public class TokenJPA {
 
 	public void setTokenType(TokenType tokenType) {
 		this.tokenType = tokenType;
-	}
-
-	public boolean isRevoked() {
-		return revoked;
-	}
-
-	public void setRevoked(boolean revoked) {
-		this.revoked = revoked;
-	}
-
-	public boolean isExpired() {
-		return expired;
-	}
-
-	public void setExpired(boolean expired) {
-		this.expired = expired;
 	}
 
 	public UserJPA getUser() {

@@ -12,8 +12,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.AuthDTO;
-import project.br.useAuthentication.dtoModel.TokenDTO;
-import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.enumState.TokenEnum;
 import project.br.useAuthentication.enumState.TokenType;
@@ -48,14 +46,14 @@ public class AuthenticationService {
 	@Autowired
 	private TokenService tokenService;
 
-	public StatusResult<?> register(UserDTO user) {
+	public StatusResult<?> register(UserJPA user) {
 		this.userService.insertUpdate(user);
 	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing up was successfully made it.");
 	}
 
 	public StatusResult<?> authenticate(AuthDTO auth) {
 		try {
-			UserDTO user = this.userService.loadUserByEmail(auth.getEmail());
+			UserJPA user = this.userService.loadUserByEmail(auth.getEmail());
 			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), user.getPassword());
 			if(!valid) {
 				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
@@ -63,14 +61,11 @@ public class AuthenticationService {
 			String jwtToken = jwtService.generateToken(user, TokenEnum.ACCESS_TOKEN);
 			String refreshToken = jwtService.generateToken(user, TokenEnum.REFRESH_TOKEN);
 			response.setContentType(null);
-			TokenJPA jwt = new TokenJPA(jwtToken, TokenType.BEARER, false, false, new UserJPA(user));
-			
-			CookieUtil.create(response, this.token, jwtToken, false, -1, "localhost");
-			CookieUtil.create(response, "refreshToken", refreshToken, false, -1, "localhost");
-			
-			revokeUserToken(user);
+			TokenJPA jwt = new TokenJPA(jwtToken, TokenType.BEARER, user);
+			this.tokenService.removeByUserID(user.getId());
 			this.tokenService.insertUpdate(jwt);
-			
+			CookieUtil.create(response, this.token, jwtToken, false, "localhost");
+			CookieUtil.create(response, "refreshToken", refreshToken, false, "localhost");
 			return new StatusResult<String>(HttpStatus.OK.value(), user.getId().toString());
 		}
 		catch (Exception e) {
@@ -91,38 +86,24 @@ public class AuthenticationService {
 			if (refreshToken == null) {
 				throw new AuthenticationExceptionResponse(JwtType.INVALID_RT.toString());
 			}
-			final String userID = jwtService.extractSubject(refreshToken).orElseThrow(
-					() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_RT.toString())
-			);
-			UserJPA u = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
+			final String userID = jwtService.extractSubject(refreshToken).orElse(null);
+			if (userID == null) {
+				this.tokenService.remove(jwt.getId());
+				throw new AuthenticationExceptionResponse(JwtType.EXPIRED_RT.toString());
+			}
+			UserJPA user = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
 					() -> new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString())
 			);
-			UserDTO user = new UserDTO(u);
 			String jwtToken = jwtService.generateToken(user, TokenEnum.ACCESS_TOKEN);
 			String jwtRefresh = jwtService.generateToken(user, TokenEnum.REFRESH_TOKEN);
 			jwt.setToken(jwtToken);
-			
-			CookieUtil.create(response, "token", jwtToken, false, -1, "localhost");
-			CookieUtil.create(response, "refreshToken", jwtRefresh , false, -1, "localhost");
-			revokeUserToken(user);
-			
 			this.tokenService.insertUpdate(jwt);
+			CookieUtil.create(response, "token", jwtToken, false, "localhost");
+			CookieUtil.create(response, "refreshToken", jwtRefresh , false, "localhost");
 			return new StatusResult<String>(HttpStatus.OK.value(), "Refresh Succefully Done");
 		}
 		else {
 			throw new AuthenticationExceptionResponse("Access Token not expired, also can't be refreshed");
 		}
-	}
-
-	private void revokeUserToken(UserDTO user) {
-		var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
-		if (validUserTokens.isEmpty()) {
-			return;
-		}
-		validUserTokens.forEach(token -> {
-			token.setExpired(true);
-			token.setRevoked(true);
-		});
-		tokenRepository.saveAll(validUserTokens);
 	}
 }
