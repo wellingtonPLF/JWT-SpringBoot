@@ -6,52 +6,52 @@ import project.br.useAuthentication.jpaModel.UserJPA;
 
 public class UserDTO  {
 
-	private Long id;
-	private String name;
-	private String email;
-	private Date datanasc;
+	private Long _id;
+	private String _name;
+	private String _email;
+	private Date _datanasc;
 	
 	public UserDTO() {
 		
 	}
 	
 	public UserDTO(Long id, String name, String email, Date datanasc) {
-		this.id = id;
-		this.name = name;
-		this.email = email;
-		this.datanasc = datanasc;
+		this._id = id;
+		this._name = name;
+		this._email = email;
+		this._datanasc = datanasc;
 	}
 	
 	public UserDTO(UserJPA user) {
-		this.id = user.getId();
-		this.name = user.getUsername();
-		this.email = user.getEmail();
-		this.datanasc = user.getDatanasc();
+		this._id = user.getId();
+		this._name = user.getUsername();
+		this._email = user.getEmail();
+		this._datanasc = user.getDatanasc();
 	}
 	
 	public Long getId() {
-		return id;
+		return this._id;
 	}
 	public void setId(Long id) {
-		this.id = id;
+		this._id = id;
 	}
 	public String getUsername() {
-		return name;
+		return this._name;
 	}
 	public void setName(String name) {
-		this.name = name;
+		this._name = name;
 	}
 	public Date getDatanasc() {
-		return datanasc;
+		return this._datanasc;
 	}
 	public void setDatanasc(Date datanasc) {
-		this.datanasc = datanasc;
+		this._datanasc = datanasc;
 	}
 	public String getEmail() {
-		return email;
+		return this._email;
 	}
 	public void setEmail(String email) {
-		this.email = email;
+		this._email = email;
 	}
 
 	@Override
@@ -59,6 +59,6 @@ public class UserDTO  {
 		return String.format("Id:%d\n"
 				+ "Name:%s\n"
 				+ "Email:%s\n"
-				+ "DataNasc:%s\n", this.id, this.name, this.email, this.datanasc);
+				+ "DataNasc:%s\n", this._id, this._name, this._email, this._datanasc);
 	}
 }

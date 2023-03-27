@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
-import project.br.useAuthentication.exception.FilterExceptionResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.util.CookieUtil;

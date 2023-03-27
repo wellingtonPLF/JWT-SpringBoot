@@ -1,11 +1,11 @@
 package project.br.useAuthentication.format;
 
-public class ErrorResponseResult<T> {
+public class ErrorResult<T> {
 	
 	private T _error;
 	private Integer _status;
 		
-	public ErrorResponseResult(T error, Integer status) {
+	public ErrorResult(T error, Integer status) {
 		super();
 		this._error= error;
 		this._status = status;

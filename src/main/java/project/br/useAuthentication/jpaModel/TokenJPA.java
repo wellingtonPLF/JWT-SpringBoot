@@ -1,9 +1,12 @@
 package project.br.useAuthentication.jpaModel;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -17,58 +20,57 @@ public class TokenJPA {
 	@Id
 	@GeneratedValue
 	@Column(name="idtoken")
-	public Long id;
+	private Long _id;
 
-	@OneToOne
+	@OneToOne(fetch=FetchType.LAZY)
+	@JsonIgnore
 	@JoinColumn(name = "iduser", unique = true)
-	//@JsonManagedReference(value="template_Janela_Compoe")
-	//@JsonIgnore
-	public UserJPA user;
+	private UserJPA _user;
 	
 	@Column(name = "key", unique = true)
-	public String token;
+	private String _token;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name="type")
-	public TokenType tokenType = TokenType.BEARER;
+	private TokenType _tokenType = TokenType.BEARER;
 
 	public TokenJPA() {}
 	
 	public TokenJPA(String token, TokenType tokenType, UserJPA user) {
-		this.token = token;
-		this.tokenType = tokenType;
-		this.user = user;
+		this._token = token;
+		this._tokenType = tokenType;
+		this._user = user;
 	}
 	
 	public Long getId() {
-		return id;
+		return this._id;
 	}
 
 	public void setId(Long id) {
-		this.id = id;
+		this._id = id;
 	}
 
 	public String getToken() {
-		return token;
+		return this._token;
 	}
 
 	public void setToken(String token) {
-		this.token = token;
+		this._token = token;
 	}
 
 	public TokenType getTokenType() {
-		return tokenType;
+		return this._tokenType;
 	}
 
 	public void setTokenType(TokenType tokenType) {
-		this.tokenType = tokenType;
+		this._tokenType = tokenType;
 	}
 
 	public UserJPA getUser() {
-		return user;
+		return this._user;
 	}
 
 	public void setUser(UserJPA user) {
-		this.user = user;
+		this._user = user;
 	}
 }

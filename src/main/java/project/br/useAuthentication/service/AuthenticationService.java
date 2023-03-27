@@ -19,7 +19,6 @@ import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
-import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.repository.UserRepository;
 import project.br.useAuthentication.util.CookieUtil;
 import project.br.useAuthentication.util.JwtUtil;
@@ -38,22 +37,15 @@ public class AuthenticationService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired
-	private UserService userService;
-	@Autowired
 	private UserRepository userRepository;
-	@Autowired
-	private TokenRepository tokenRepository;
 	@Autowired
 	private TokenService tokenService;
 
-	public StatusResult<?> register(UserJPA user) {
-		this.userService.insertUpdate(user);
-	    return new StatusResult<String>(HttpStatus.OK.value(), "Sing up was successfully made it.");
-	}
-
 	public StatusResult<?> authenticate(AuthDTO auth) {
 		try {
-			UserJPA user = this.userService.loadUserByEmail(auth.getEmail());
+			UserJPA user = this.userRepository.findBy_email(auth.getEmail()).orElseThrow(
+					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+			);
 			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), user.getPassword());
 			if(!valid) {
 				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
@@ -76,9 +68,7 @@ public class AuthenticationService {
 	public StatusResult<?> refresh(){
 		final Cookie cookieAccess = WebUtils.getCookie(request, "token");
 		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
-		final TokenJPA jwt = this.tokenRepository.findByToken(accessToken).orElseThrow(
-			() -> new AuthenticationExceptionResponse(JwtType.INVALID_AT.toString())
-		);
+		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
 		final String expiredAcessToken = jwtService.extractSubject(jwt.getToken()).orElse(null);
 		if (expiredAcessToken == null) {
 			final Cookie cookieRefresh = WebUtils.getCookie(request, "refreshToken");

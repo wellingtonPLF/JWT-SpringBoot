@@ -15,7 +15,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.TokenEnum;
 import project.br.useAuthentication.jpaModel.UserJPA;
 

@@ -9,7 +9,7 @@ import project.br.useAuthentication.jpaModel.TokenJPA;
 
 public interface TokenRepository extends JpaRepository<TokenJPA, Long>{
 		
-	@Query("select t from TokenJPA t where t.user._id = ?1")
+	@Query("select t from TokenJPA t where t._user._id = ?1")
 	Optional<TokenJPA> findByUserID(Long userID);
 	
 	Optional<TokenJPA> findByToken(String token);

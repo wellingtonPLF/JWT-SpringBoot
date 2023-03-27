@@ -13,11 +13,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
 import project.br.useAuthentication.dtoModel.AuthDTO;
-import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.service.AuthenticationService;
-import project.br.useAuthentication.service.LogOutService;
 import project.br.useAuthentication.service.UserService;
 
 @RestController
@@ -26,7 +24,6 @@ public class UserController {
 	
 	@Autowired
 	private UserService userService;
-	
 	@Autowired
 	private AuthenticationService authService;
 		
@@ -57,7 +54,7 @@ public class UserController {
 	@PreAuthorize("permitAll()")
 	@PostMapping("/usuarios")
 	public StatusResult<?> insert(@Valid @RequestBody UserJPA user) {
-		return this.authService.register(user);
+		return this.userService.insertUpdate(user);
 	}
 	
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
@@ -66,7 +63,7 @@ public class UserController {
 		return this.userService.insertUpdate(user);
 	}
 	
-	@PreAuthorize("hasRole('ROLE_ADMIN')")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@DeleteMapping("/usuarios/{id}")
 	public StatusResult<?> delete(@PathVariable("id") Long id) {	
 		return this.userService.remove(id);
