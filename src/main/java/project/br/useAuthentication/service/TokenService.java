@@ -35,7 +35,7 @@ public class TokenService {
 			this.tokenRepository.save(token);
 		}
 		catch(Exception e) {
-			throw new BadRequestExceptionResult("Token is Null");
+			throw new BadRequestExceptionResult("TokenId is Null");
 		}
 	}
 	
@@ -47,7 +47,7 @@ public class TokenService {
 			}
 		}
 		catch(Exception e) {
-			throw new BadRequestExceptionResult("Token is Null");
+			throw new BadRequestExceptionResult("TokenId is Null");
 		}
 	}
 	

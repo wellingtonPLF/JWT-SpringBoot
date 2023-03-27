@@ -65,7 +65,7 @@ public class AuthenticationService {
 		}
 	}
 	
-	public StatusResult<?> refresh(){
+	public StatusResult<?> refresh() {
 		final Cookie cookieAccess = WebUtils.getCookie(request, "token");
 		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
 		final TokenJPA jwt = this.tokenService.findByToken(accessToken);

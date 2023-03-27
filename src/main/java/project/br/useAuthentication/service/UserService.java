@@ -52,15 +52,15 @@ public class UserService implements UserDetailsService{
 	}
 	
 	public StatusResult<?> findById(Long id) {
-		UserDTO user = new UserDTO(this.userRepository.findById(id).orElseThrow(() -> 
-			new NotFoundExceptionResult("The requested Id was not found.")));
+		UserDTO user = new UserDTO(this.userRepository.findById(id).orElseThrow(
+			() -> new NotFoundExceptionResult("The requested Id was not found.")));
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 		
 	@Override
 	public UserJPA loadUserByUsername(String username) {
 		UserJPA user = this.userRepository.findBy_username(username).orElseThrow(
-				() -> new UsernameNotFoundException("User not Found: " + username)
+			() -> new UsernameNotFoundException("User not Found: " + username)
 		);
 		return user;
 	}
