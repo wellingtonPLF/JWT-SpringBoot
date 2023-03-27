@@ -70,12 +70,7 @@ public class UserService implements UserDetailsService{
 		if (user == null) {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		if (user.getPassword() != null) {
-			if (user.getPassword().length() < 8) {
-				throw new IllegalArgumentException("Password Not Valid");
-			}
-		}
-		if (this.userRepository.findById(user.getId()).orElse(null) != null) {
+		if (user.getId() != null) {
 			if(this.getTokenValidation(user.getId()) == false) {
 				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 			}

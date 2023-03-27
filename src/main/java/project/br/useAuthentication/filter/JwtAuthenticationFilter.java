@@ -50,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final Cookie cookie = WebUtils.getCookie(request, this.token);
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		try {
-			TokenJPA tokenDB = tokenRepository.findByToken(jwt).orElseThrow(
+			TokenJPA tokenDB = tokenRepository.findBy_token(jwt).orElseThrow(
 				() -> new FilterExceptionResult(JwtType.INVALID_AT)
 			);
 			if (tokenDB != null) {

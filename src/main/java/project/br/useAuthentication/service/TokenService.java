@@ -23,7 +23,7 @@ public class TokenService {
 	}
 	
 	public TokenJPA findByToken(String token) {
-		TokenJPA jwtDB = this.tokenRepository.findByToken(token).orElseThrow(
+		TokenJPA jwtDB = this.tokenRepository.findBy_token(token).orElseThrow(
 			() -> new AuthenticationExceptionResponse(JwtType.INVALID_AT.toString())
 		);
 		return jwtDB;

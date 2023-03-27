@@ -29,6 +29,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Past;
 import project.br.useAuthentication.dtoModel.UserDTO;
+import project.br.useAuthentication.interfaces.PasswordValidationConstraint;
 
 @Entity
 @Table(name = "usuario")
@@ -51,6 +52,7 @@ public class UserJPA implements UserDetails {
 	private String _email;
 	
 	@Column(name="password")
+	@PasswordValidationConstraint
 	@NotBlank(message="Password: Campo obrigatório")
 	private String _password;
 	
@@ -61,7 +63,7 @@ public class UserJPA implements UserDetails {
 	private Date _datanasc;
 	
 	@JsonIgnore
-	@OneToOne(mappedBy = "user", cascade=CascadeType.ALL, orphanRemoval=true)
+	@OneToOne(mappedBy = "_user", cascade=CascadeType.ALL, orphanRemoval=true)
 	private TokenJPA _token;
 	
 	@ManyToMany(fetch = FetchType.EAGER)
@@ -117,7 +119,7 @@ public class UserJPA implements UserDetails {
 	public String getUsername() {
 		return this._username;
 	}
-	public void setName(String username) {
+	public void setUsername(String username) {
 		this._username = username;
 	}
 	public String getPassword() {

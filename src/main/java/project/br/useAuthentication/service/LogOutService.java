@@ -29,7 +29,7 @@ public class LogOutService implements LogoutHandler {
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 		final Cookie cookie = WebUtils.getCookie(request, this.token);
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
-		TokenJPA jwtDB = tokenRepository.findByToken(jwt).orElseThrow(
+		TokenJPA jwtDB = tokenRepository.findBy_token(jwt).orElseThrow(
 			() -> new AuthenticationExceptionResponse(JwtType.INVALID_AT.toString())
 		);
 	    CookieUtil.clear(response, this.token);	    
