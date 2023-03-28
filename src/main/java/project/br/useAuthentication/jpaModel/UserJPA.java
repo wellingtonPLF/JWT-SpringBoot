@@ -33,8 +33,8 @@ import project.br.useAuthentication.interfaces.PasswordValidationConstraint;
 
 @Entity
 @Table(name = "usuario")
-@SuppressWarnings("serial")
 public class UserJPA implements UserDetails {
+	private final static long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_sequence")

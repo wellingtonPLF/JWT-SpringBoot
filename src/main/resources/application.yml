@@ -9,12 +9,17 @@ security:
     tokenName: token
     secretKey: ${SECRET_KEY}
 
-#Intercalation + Spring Session
+#Intercalation + Spring Session Redis
 spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
   session:
-    store-type: jdbc
-    jdbc:
-      initialize-schema: always
+    #store-type: jdbc
+    store-type: redis
+    #jdbc:
+     # initialize-schema: always
   profiles:
     active: ${APP_PROFILE:dev}
   jpa:

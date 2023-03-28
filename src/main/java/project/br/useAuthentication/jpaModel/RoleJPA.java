@@ -13,10 +13,10 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import project.br.useAuthentication.enumState.RoleName;
 
-@SuppressWarnings("serial")
 @Entity
 @Table(name = "roles")
 public class RoleJPA implements GrantedAuthority{
+	private final static long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
