@@ -25,6 +25,7 @@ import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.repository.UserRepository;
+import project.br.useAuthentication.service.TokenService;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Component
@@ -50,9 +51,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		final Cookie cookie = WebUtils.getCookie(request, this.token);
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
 		try {
-			TokenJPA tokenDB = tokenRepository.findBy_token(jwt).orElseThrow(
-				() -> new FilterExceptionResult(JwtType.INVALID_AT)
-			);
+			TokenJPA tokenDB = tokenRepository.findBy_token(jwt).orElse(null);
 			if (tokenDB != null) {
 				// (Expired == true) ? Exception : "userID"
 				userID = jwtService.extractSubject(jwt).orElseThrow(

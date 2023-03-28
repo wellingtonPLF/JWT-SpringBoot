@@ -61,6 +61,7 @@ public class CustomExceptionHandler extends ResponseEntityExceptionHandler {
     	else if (exception.getLocalizedMessage() == JwtType.EXPIRED_RT.toString()) {
     		message = JwtType.EXPIRED_RT.getValue();
     	}
+		System.out.println("Result: " + exception.getLocalizedMessage());
 		ErrorResult<String> error = new ErrorResult<String>(message, HttpStatus.UNAUTHORIZED.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.UNAUTHORIZED);
 	}

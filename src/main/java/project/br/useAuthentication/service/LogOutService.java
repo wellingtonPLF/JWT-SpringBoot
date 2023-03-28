@@ -11,17 +11,14 @@ import org.springframework.web.util.WebUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import project.br.useAuthentication.enumState.JwtType;
-import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 import project.br.useAuthentication.jpaModel.TokenJPA;
-import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.util.CookieUtil;
 
 @Service
 public class LogOutService implements LogoutHandler {
 
 	@Autowired
-	private TokenRepository tokenRepository;
+	private TokenService tokenService;
 	@Value("${security.jwt.tokenName}")
 	private String token;
 
@@ -29,11 +26,9 @@ public class LogOutService implements LogoutHandler {
 	public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 		final Cookie cookie = WebUtils.getCookie(request, this.token);
 		final String jwt = (cookie != null) ? cookie.getValue() : null;
-		TokenJPA jwtDB = tokenRepository.findBy_token(jwt).orElseThrow(
-			() -> new AuthenticationExceptionResponse(JwtType.INVALID_AT.toString())
-		);
+		TokenJPA jwtDB = tokenService.findByToken(jwt);
 	    CookieUtil.clear(response, this.token);	    
-	    tokenRepository.deleteById(jwtDB.getId());;
+	    tokenService.remove(jwtDB.getId());;
 	    SecurityContextHolder.clearContext();
 	}
 }

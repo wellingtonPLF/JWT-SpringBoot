@@ -16,11 +16,13 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.JwtType;
+import project.br.useAuthentication.enumState.RoleName;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 import project.br.useAuthentication.exception.BadRequestExceptionResult;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
+import project.br.useAuthentication.jpaModel.RoleJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.UserRepository;
@@ -39,7 +41,7 @@ public class UserService implements UserDetailsService{
 	private HttpServletRequest request;
 	@Autowired
 	private PasswordEncoder encoder;
-		
+	
 	public StatusResult<?> listAll() {
 		try {
 			List<UserJPA> result = this.userRepository.findAll();
@@ -77,8 +79,7 @@ public class UserService implements UserDetailsService{
 		}
 		user.setPassword(this.encoder.encode(user.getPassword()));
 		UserDTO u = new UserDTO(this.userRepository.save(user));
-		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);			
-
+		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
 	}
 	
 	public StatusResult<?> remove(Long id) {
@@ -102,7 +103,12 @@ public class UserService implements UserDetailsService{
 		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
 		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
 		final String userID = jwtService.extractSubject(jwt.getToken()).orElseThrow();
+		final UserJPA user = this.userRepository.findById(Long.parseLong(userID)).orElseThrow();
+		final Long result = user.getRoles().stream().map(RoleJPA::getId).filter(x -> x == 1).findFirst().orElse(null);
 		if (Long.parseLong(userID) == id) {
+			return true;
+		}
+		else if (result != null) {
 			return true;
 		}
 		return false;
