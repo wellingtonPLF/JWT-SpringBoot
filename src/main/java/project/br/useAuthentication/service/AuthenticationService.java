@@ -28,6 +28,8 @@ public class AuthenticationService {
 	
 	@Value("${security.jwt.tokenName}")
 	private String token;
+	@Value("${security.jwt.refreshName}")
+	private String refreshToken;
 	@Autowired
 	private JwtUtil jwtService;
 	@Autowired
@@ -57,7 +59,7 @@ public class AuthenticationService {
 			this.tokenService.removeByUserID(user.getId());
 			this.tokenService.insertUpdate(jwt);
 			CookieUtil.create(response, this.token, jwtToken, false, "localhost");
-			CookieUtil.create(response, "refreshToken", refreshToken, false, "localhost");
+			CookieUtil.create(response, this.refreshToken, refreshToken, false, "localhost");
 			return new StatusResult<String>(HttpStatus.OK.value(), user.getId().toString());
 		}
 		catch (Exception e) {
@@ -88,8 +90,8 @@ public class AuthenticationService {
 			String jwtRefresh = jwtService.generateToken(user, TokenEnum.REFRESH_TOKEN);
 			jwt.setToken(jwtToken);
 			this.tokenService.insertUpdate(jwt);
-			CookieUtil.create(response, "token", jwtToken, false, "localhost");
-			CookieUtil.create(response, "refreshToken", jwtRefresh , false, "localhost");
+			CookieUtil.create(response, this.token, jwtToken, false, "localhost");
+			CookieUtil.create(response, this.refreshToken, jwtRefresh , false, "localhost");
 			return new StatusResult<String>(HttpStatus.OK.value(), "Refresh Succefully Done");
 		}
 		else {
