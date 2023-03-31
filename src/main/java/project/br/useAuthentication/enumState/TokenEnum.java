@@ -2,7 +2,7 @@ package project.br.useAuthentication.enumState;
 
 public enum TokenEnum {
 	ACCESS_TOKEN(1),
-	REFRESH_TOKEN(24 * 7);
+	REFRESH_TOKEN(2);
 
 	private Integer value;
 

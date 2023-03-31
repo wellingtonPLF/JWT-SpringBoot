@@ -23,48 +23,63 @@ import project.br.useAuthentication.format.ErrorResult;
 
 @ControllerAdvice
 public class CustomExceptionHandler {
-			
+
 	@ExceptionHandler(InternalExceptionResult.class)
 	public final ResponseEntity<?> handleAllExceptions(InternalExceptionResult message) {
-		ErrorResult<String> error = new ErrorResult<String>(message.getLocalizedMessage(), 
-				HttpStatus.INTERNAL_SERVER_ERROR.value());
+		ErrorResult<String> error = 
+				new ErrorResult<String>(
+						message.getLocalizedMessage(), 
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						HttpStatus.INTERNAL_SERVER_ERROR.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	@ExceptionHandler(IllegalArgumentException.class)
 	public final ResponseEntity<?> handleIllegalExceptions(IllegalArgumentException message) {
-		ErrorResult<String> error = new ErrorResult<String>(message.getLocalizedMessage(), 
-				HttpStatus.INTERNAL_SERVER_ERROR.value());
+		ErrorResult<String> error = 
+				new ErrorResult<String>(
+						message.getLocalizedMessage(), 
+						HttpStatus.INTERNAL_SERVER_ERROR, 
+						HttpStatus.INTERNAL_SERVER_ERROR.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
 	@ExceptionHandler(BadRequestExceptionResult.class)
 	public final ResponseEntity<?> handleBadRequestExceptions(BadRequestExceptionResult message) {
-		ErrorResult<String> error = new ErrorResult<String>(message.getLocalizedMessage(), 
-				HttpStatus.BAD_REQUEST.value());
+		ErrorResult<String> error = 
+				new ErrorResult<String>(
+						message.getLocalizedMessage(), 
+						HttpStatus.BAD_REQUEST, 
+						HttpStatus.BAD_REQUEST.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.BAD_REQUEST);
 	}	
 
 	@ExceptionHandler(AuthenticationExceptionResponse.class)
 	public final ResponseEntity<?> handleExpiredJwtExceptions(AuthenticationExceptionResponse exception) {
-		String message = "";
+		ErrorResult<String> error = new ErrorResult<String>(HttpStatus.UNAUTHORIZED.value());
 		if (exception.getLocalizedMessage() == JwtType.INVALID_USER.toString()) {
-    		message = JwtType.INVALID_USER.getValue();
+    		error.setError(JwtType.INVALID_USER.getValue());
+    		error.setType(JwtType.INVALID_USER);
     	}
     	else if (exception.getLocalizedMessage() == JwtType.INVALID_AT.toString()) {
-    		message = JwtType.INVALID_AT.getValue();
+    		error.setError(JwtType.INVALID_AT.getValue());
+    		error.setType(JwtType.INVALID_AT);
     	}
     	else if (exception.getLocalizedMessage() == JwtType.INVALID_RT.toString()) {
-    		message = JwtType.INVALID_RT.getValue();
+    		error.setError(JwtType.INVALID_RT.getValue());
+    		error.setType(JwtType.INVALID_RT);
     	}
     	else if (exception.getLocalizedMessage() == JwtType.EXPIRED_AT.toString()) {
-    		message = JwtType.EXPIRED_AT.getValue();
+    		error.setError(JwtType.EXPIRED_AT.getValue());
+    		error.setType(JwtType.EXPIRED_AT);
     	}
     	else if (exception.getLocalizedMessage() == JwtType.EXPIRED_RT.toString()) {
-    		message = JwtType.EXPIRED_RT.getValue();
+    		error.setError(JwtType.EXPIRED_RT.getValue());
+    		error.setType(JwtType.EXPIRED_RT);
     	}
-		System.out.println("Result: " + exception.getLocalizedMessage());
-		ErrorResult<String> error = new ErrorResult<String>(message, HttpStatus.UNAUTHORIZED.value());
+    	else {
+    		error.setError(exception.getLocalizedMessage());
+    	}
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.UNAUTHORIZED);
 	}
 	
@@ -75,21 +90,22 @@ public class CustomExceptionHandler {
 	    for (FieldError cv : bindingResult.getFieldErrors()) {
 	    	lista.add(String.format("%s", cv.getDefaultMessage()));
 	    }
-	    ErrorResult<List<String>> error = new ErrorResult<List<String>>(lista, HttpStatus.BAD_REQUEST.value());
+	    ErrorResult<List<String>> error = 
+	    		new ErrorResult<List<String>>(lista, HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value());
 		return new ResponseEntity<ErrorResult<List<String>>>(error, HttpStatus.BAD_REQUEST);
 	}
 		
 	@ExceptionHandler(UsernameNotFoundException.class)
 	public final ResponseEntity<?> handleUsernameNotFoundExceptions(UsernameNotFoundException message){
-		ErrorResult<String> error = new ErrorResult<String>(message.getLocalizedMessage(), 
-				HttpStatus.NOT_FOUND.value());
+		ErrorResult<String> error = 
+				new ErrorResult<String>(message.getLocalizedMessage(), HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.NOT_FOUND);
 	}
 	
 	@ExceptionHandler(NotFoundExceptionResult.class)
 	public final ResponseEntity<?> handleNotFoundExceptions(NotFoundExceptionResult message) {
-		ErrorResult<String> error = new ErrorResult<String>(message.getLocalizedMessage(), 
-				HttpStatus.NOT_FOUND.value());
+		ErrorResult<String> error = 
+				new ErrorResult<String>(message.getLocalizedMessage(), HttpStatus.NOT_FOUND, HttpStatus.NOT_FOUND.value());
 		return new ResponseEntity<ErrorResult<String>>(error, HttpStatus.NOT_FOUND);
 	}
 	
@@ -99,7 +115,8 @@ public class CustomExceptionHandler {
 	    for (ConstraintViolation<?> cv : message.getConstraintViolations()) {
 	    	lista.add(String.format("%s", cv.getMessage()));
 	    }
-		ErrorResult<List<String>> error = new ErrorResult<List<String>>(lista, HttpStatus.BAD_REQUEST.value());
+		ErrorResult<List<String>> error = 
+				new ErrorResult<List<String>>(lista, HttpStatus.BAD_REQUEST, HttpStatus.BAD_REQUEST.value());
 		return new ResponseEntity<ErrorResult<List<String>>>(error, HttpStatus.BAD_REQUEST);
 	}
 }

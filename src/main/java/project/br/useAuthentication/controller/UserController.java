@@ -46,9 +46,15 @@ public class UserController {
 	}
 	
 	@PreAuthorize("permitAll()")
-	@PostMapping("/usuarios/refresh")
+	@GetMapping("/usuarios/refresh")
 	public StatusResult<?> refresh() {
 		return this.authService.refresh();
+	}
+	
+	@PreAuthorize("permitAll()")
+	@GetMapping("/usuarios/logout")
+	public StatusResult<?> logout() {
+		return this.authService.logout();
 	}
 	
 	@PreAuthorize("permitAll()")

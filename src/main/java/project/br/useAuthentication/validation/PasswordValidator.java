@@ -11,8 +11,6 @@ public class PasswordValidator implements ConstraintValidator<PasswordValidation
 
     @Override
     public boolean isValid(String password, ConstraintValidatorContext cxt) {
-    	System.out.println(password.length());
-    	System.out.println(password);
     	Boolean result = password != null && (password.length() > 7) && (password.length() < 80); 
         return result;
     }

@@ -25,7 +25,6 @@ import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
 import project.br.useAuthentication.repository.TokenRepository;
 import project.br.useAuthentication.repository.UserRepository;
-import project.br.useAuthentication.service.TokenService;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Component
