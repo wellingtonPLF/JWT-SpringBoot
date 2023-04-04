@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.WebUtils;
@@ -16,37 +14,45 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.JwtType;
-import project.br.useAuthentication.enumState.RoleName;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 import project.br.useAuthentication.exception.BadRequestExceptionResult;
 import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
+import project.br.useAuthentication.jpaModel.AuthJPA;
 import project.br.useAuthentication.jpaModel.RoleJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
+import project.br.useAuthentication.repository.AuthRepository;
 import project.br.useAuthentication.repository.UserRepository;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Service
-public class UserService implements UserDetailsService{
+public class UserService {
 	
+	@Value("${security.jwt.tokenName}")
+	private String accessToken;
 	@Autowired
 	private UserRepository userRepository;
+	@Autowired
+	private AuthRepository authRepository;
 	@Autowired
 	private TokenService tokenService;
 	@Autowired
 	private JwtUtil jwtService;
 	@Autowired
 	private HttpServletRequest request;
-	@Autowired
-	private PasswordEncoder encoder;
 	
 	public StatusResult<?> listAll() {
 		try {
-			List<UserJPA> result = this.userRepository.findAll();
-			List<UserDTO> userlist = result.stream().map(x -> new UserDTO(x)).collect(Collectors.toList());
-			return new StatusResult<List<UserDTO>>(HttpStatus.OK.value(), userlist);
+			List<UserJPA> userDB = this.userRepository.findAll();
+			List<AuthJPA> authDB = this.authRepository.findAll();
+			List<UserDTO> users = userDB.stream()
+				.map(user ->
+						new UserDTO(user, authDB.stream().filter((auth) -> auth.getId() == user.getAuth().getId()).findFirst()
+								.orElse(null))
+					).collect(Collectors.toList());
+			return new StatusResult<List<UserDTO>>(HttpStatus.OK.value(), users);
 		}
 		catch(Exception e) {
 			throw new InternalExceptionResult("Something Went Wrong!");
@@ -54,31 +60,38 @@ public class UserService implements UserDetailsService{
 	}
 	
 	public StatusResult<?> findById(Long id) {
-		UserDTO user = new UserDTO(this.userRepository.findById(id).orElseThrow(
-			() -> new NotFoundExceptionResult("The requested Id was not found.")));
-		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
-	}
-		
-	@Override
-	public UserJPA loadUserByUsername(String username) {
-		UserJPA user = this.userRepository.findBy_username(username).orElseThrow(
-			() -> new UsernameNotFoundException("User not Found: " + username)
-		);
-		return user;
+		try {
+			UserJPA userDB = this.userRepository.findById(id).orElseThrow();
+			AuthJPA authDB = this.authRepository.findByUserID(userDB.getId()).orElseThrow();
+			UserDTO user = new UserDTO(userDB, authDB);
+			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
+		}
+		catch(Exception e) {
+			throw new NotFoundExceptionResult("The requested Id was not found.");
+		}
 	}
 
-	@Transactional
-	public StatusResult<?> insertUpdate(UserJPA user) {
+	public StatusResult<?> insert(UserJPA user) {
 		if (user == null) {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		if (user.getId() != null) {
-			if(this.getTokenValidation(user.getId()) == false) {
-				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
-			}
+		UserJPA userDB = this.userRepository.save(user);
+		AuthJPA authDB = this.authRepository.findByUserID(user.getId()).orElseThrow();
+		UserDTO u = new UserDTO(userDB, authDB);
+		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
+	}
+
+	@Transactional
+	public StatusResult<?> update(UserJPA user) {
+		if (user == null) {
+			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		user.setPassword(this.encoder.encode(user.getPassword()));
-		UserDTO u = new UserDTO(this.userRepository.save(user));
+		if(this.getTokenValidation(user.getId()) == false) {
+			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
+		}
+		UserJPA userDB = this.userRepository.save(user); 
+		AuthJPA authDB = this.authRepository.findByUserID(user.getId()).orElseThrow();
+		UserDTO u = new UserDTO(userDB, authDB);
 		return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
 	}
 	
@@ -99,13 +112,14 @@ public class UserService implements UserDetailsService{
 	}
 	
 	public Boolean getTokenValidation(Long id) {
-		final Cookie cookieAccess = WebUtils.getCookie(request, "token");
+		final long admin = 1;
+		final Cookie cookieAccess = WebUtils.getCookie(request, this.accessToken);
 		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
 		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
-		final String userID = jwtService.extractSubject(jwt.getToken()).orElseThrow();
-		final UserJPA user = this.userRepository.findById(Long.parseLong(userID)).orElseThrow();
-		final Long result = user.getRoles().stream().map(RoleJPA::getId).filter(x -> x == 1).findFirst().orElse(null);
-		if (Long.parseLong(userID) == id) {
+		final String authID = jwtService.extractSubject(jwt.getToken()).orElseThrow();
+		final AuthJPA auth = this.authRepository.findById(Long.parseLong(authID)).orElseThrow();
+		final Long result = auth.getRoles().stream().map(RoleJPA::getId).filter(x -> x == admin).findFirst().orElse(null);
+		if (Long.parseLong(authID) == id) {
 			return true;
 		}
 		else if (result != null) {

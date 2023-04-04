@@ -1,10 +1,11 @@
 package project.br.useAuthentication.service;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -13,20 +14,18 @@ import org.springframework.web.util.WebUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import project.br.useAuthentication.dtoModel.AuthDTO;
 import project.br.useAuthentication.enumState.JwtType;
-import project.br.useAuthentication.enumState.TokenEnum;
 import project.br.useAuthentication.enumState.TokenType;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
 import project.br.useAuthentication.format.StatusResult;
+import project.br.useAuthentication.jpaModel.AuthJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
-import project.br.useAuthentication.jpaModel.UserJPA;
-import project.br.useAuthentication.repository.UserRepository;
+import project.br.useAuthentication.repository.AuthRepository;
 import project.br.useAuthentication.util.CookieUtil;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Service
-public class AuthenticationService {
+public class AuthenticationService implements UserDetailsService{
 	
 	@Value("${security.jwt.tokenName}")
 	private String accessToken;
@@ -41,28 +40,61 @@ public class AuthenticationService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 	@Autowired
-	private UserRepository userRepository;
+	private AuthRepository authRepository;
 	@Autowired
 	private TokenService tokenService;
 
-	public StatusResult<?> authenticate(AuthDTO auth) {
+	public StatusResult<?> authenticate(AuthJPA auth) {
 		try {
-			UserJPA user = this.userRepository.findBy_email(auth.getEmail()).orElseThrow(
+			AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
 					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
 			);
-			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), user.getPassword());
+			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
 			if(!valid) {
 				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
 			}
-			String jwtToken = jwtService.generateToken(user, TokenEnum.ACCESS_TOKEN);
-			String refreshToken = jwtService.generateToken(user, TokenEnum.REFRESH_TOKEN);
+			String jwtToken = jwtService.generateToken(authDB, TokenType.ACCESS_TOKEN);
+			String refreshToken = jwtService.generateToken(authDB, TokenType.REFRESH_TOKEN);
 			response.setContentType(null);
-			TokenJPA jwt = new TokenJPA(jwtToken, TokenType.BEARER, user);
-			this.tokenService.removeByUserID(user.getId());
+			TokenJPA jwt = new TokenJPA(jwtToken, authDB);
+			this.tokenService.removeByAuthID(authDB.getId());
 			this.tokenService.insertUpdate(jwt);
 			CookieUtil.create(response, this.accessToken, jwtToken, false, "localhost");
 			CookieUtil.create(response, this.refreshToken, refreshToken, false, "localhost");
-			return new StatusResult<String>(HttpStatus.OK.value(), user.getId().toString());
+			return new StatusResult<String>(HttpStatus.OK.value(), authDB.getId().toString());
+		}
+		catch (Exception e) {
+			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
+		}
+	}
+	
+	@Override
+	public AuthJPA loadUserByUsername(String username) {
+		AuthJPA user = this.authRepository.findBy_username(username).orElseThrow(
+			() -> new UsernameNotFoundException("User not Found: " + username)
+		);
+		return user;
+	}
+	
+	public StatusResult<?> authInsertUpdate(AuthJPA auth){
+		if (auth == null) {
+			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
+		}
+		this.authRepository.save(auth);
+		return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
+	}
+	
+	public StatusResult<?> acceptAuth(AuthJPA auth){
+		try {
+			AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
+					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+			);
+			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
+			if(!valid) {
+				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
+			}
+			response.setContentType(null);
+			return new StatusResult<String>(HttpStatus.OK.value(), authDB.getId().toString());
 		}
 		catch (Exception e) {
 			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
@@ -80,14 +112,14 @@ public class AuthenticationService {
 			if (refreshToken == null) {
 				throw new AuthenticationExceptionResponse(JwtType.INVALID_RT.toString());
 			}
-			final String userID = jwtService.extractSubject(refreshToken).orElseThrow(
+			final String authID = jwtService.extractSubject(refreshToken).orElseThrow(
 				() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_RT.toString())
 			);
-			UserJPA user = this.userRepository.findById(Long.parseLong(userID)).orElseThrow(
+			AuthJPA authDB = this.authRepository.findById(Long.parseLong(authID)).orElseThrow(
 					() -> new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString())
 			);
-			String jwtToken = jwtService.generateToken(user, TokenEnum.ACCESS_TOKEN);
-			String jwtRefresh = jwtService.generateToken(user, TokenEnum.REFRESH_TOKEN);
+			String jwtToken = jwtService.generateToken(authDB, TokenType.ACCESS_TOKEN);
+			String jwtRefresh = jwtService.generateToken(authDB, TokenType.REFRESH_TOKEN);
 			jwt.setToken(jwtToken);
 			this.tokenService.insertUpdate(jwt);
 			CookieUtil.create(response, this.accessToken, jwtToken, false, "localhost");

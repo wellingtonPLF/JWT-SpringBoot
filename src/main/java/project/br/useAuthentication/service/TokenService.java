@@ -16,7 +16,7 @@ public class TokenService {
 	@Autowired
 	private TokenRepository tokenRepository;
 		
-	public TokenJPA findById(Long id) {
+	public TokenJPA findByIds(Long id) {
 		TokenJPA token = this.tokenRepository.findById(id).orElseThrow(
 			() -> new NotFoundExceptionResult("The requested TokenId was not found."));
 		return token;
@@ -39,9 +39,9 @@ public class TokenService {
 		}
 	}
 	
-	public void removeByUserID(Long id) {
+	public void removeByAuthID(Long id) {
 		try {
-			TokenJPA tokenID = this.tokenRepository.findByUserID(id).orElse(null);
+			TokenJPA tokenID = this.tokenRepository.findByAuthID(id).orElse(null);
 			if (tokenID != null) {
 				this.tokenRepository.deleteById(tokenID.getId());
 			}

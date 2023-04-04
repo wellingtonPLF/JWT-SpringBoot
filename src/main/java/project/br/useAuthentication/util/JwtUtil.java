@@ -15,8 +15,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import project.br.useAuthentication.enumState.TokenEnum;
-import project.br.useAuthentication.jpaModel.UserJPA;
+import project.br.useAuthentication.enumState.TokenType;
+import project.br.useAuthentication.jpaModel.AuthJPA;
 
 @Service
 public class JwtUtil {
@@ -53,14 +53,14 @@ public class JwtUtil {
 	    return Keys.hmacShaKeyFor(keyBytes);
 	}
 
-	public String generateToken(UserJPA userDetails, TokenEnum type) {
+	public String generateToken(AuthJPA authDetails, TokenType type) {
 		Map<String, Object> extraClaims = new HashMap<>();
 	    return Jwts
 	        .builder()
 	        .setClaims(extraClaims)
-	        .setSubject(userDetails.getId().toString())
+	        .setSubject(authDetails.getId().toString())
 	        .setIssuedAt(new Date(System.currentTimeMillis()))
-	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5 * type.getValue()))
+	        .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * type.getValue()))
 	        .signWith(getSignInKey(), SignatureAlgorithm.HS256)
 	        .compact();
 	  }
