@@ -6,8 +6,6 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -23,14 +21,13 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import project.br.useAuthentication.interfaces.PasswordValidationConstraint;
 
 @Entity
 @Table(name = "auth")
 public class AuthJPA implements UserDetails {
 
-private final static long serialVersionUID = 1L;
+	private final static long serialVersionUID = 1L;
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.SEQUENCE, generator="user_sequence")
@@ -38,11 +35,9 @@ private final static long serialVersionUID = 1L;
 	@Column(name="auth_ID")
 	private Long _id;
 	
-	@NotBlank(message="Name: Campo obrigatório")
 	@Column(name="username")
 	private String _username;
 	
-	@NotNull(message="Email: Campo obrigatório")
 	@Email(message="Email: Please provide a valid address", regexp="[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}")
 	@Column(name="email", unique=true)
 	private String _email;
@@ -52,22 +47,18 @@ private final static long serialVersionUID = 1L;
 	@Column(name="password")
 	private String _password;
 	
-	@JsonIgnore
 	@OneToOne(mappedBy = "_auth", cascade=CascadeType.ALL, orphanRemoval=true)
 	private UserJPA _user;
 	
-	@JsonIgnore
 	@OneToOne(mappedBy = "_auth", cascade=CascadeType.ALL, orphanRemoval=true)
 	private TokenJPA _token;
 	
-	@ManyToMany(fetch = FetchType.EAGER)
-	@JoinTable(name="Auth_Roles", 
+	@ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.REFRESH})
+	@JoinTable(name="Auth_Roles",
 	joinColumns= @JoinColumn(name="auth_id"), inverseJoinColumns = @JoinColumn(name="role_id"))
 	private Set<RoleJPA> _roles;
 	
-	public AuthJPA() {
-		
-	}
+	public AuthJPA() {}
 	
 	public AuthJPA(String username, String email, String password) {
 		this._username = username;
@@ -90,19 +81,14 @@ private final static long serialVersionUID = 1L;
 	public boolean isEnabled() {
 		return true;
 	}
-			
-	public TokenJPA getToken() {
-		return this._token;
-	}
-	public void setToken(TokenJPA token) {
-		this._token = token;
-	}
+	//-----------------------------------------------
 	public Set<RoleJPA> getRoles() {
 		return this._roles;
 	}
 	public void setRoles(Set<RoleJPA> roles) {
 		this._roles = roles;
 	}
+	//-----------------------------------------------
 	public Long getId() {
 		return _id;
 	}
@@ -127,10 +113,12 @@ private final static long serialVersionUID = 1L;
 	public void setEmail(String email) {
 		this._email = email;
 	}
-	public UserJPA getUser() {
-		return this._user;
-	}
-	public void setUser(UserJPA user) {
-		this._user = user;
+	
+	@Override
+	public String toString() {
+		return String.format("Id:%d\n"
+				+ "UserName:%s\n"
+				+ "Password:%s\n"
+				+ "Email:%s\n", this._id, this._username, this._password, this._email);
 	}
 }

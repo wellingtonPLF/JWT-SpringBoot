@@ -17,6 +17,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.enumState.TokenType;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
+import project.br.useAuthentication.exception.BadRequestExceptionResult;
+import project.br.useAuthentication.exception.InternalExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.AuthJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
@@ -45,10 +47,21 @@ public class AuthenticationService implements UserDetailsService{
 	private TokenService tokenService;
 
 	public StatusResult<?> authenticate(AuthJPA auth) {
+		final AuthJPA authDB;
 		try {
-			AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
-					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
-			);
+			if (auth.getEmail() != null) {
+				authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
+						() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+				);
+			}
+			else if (auth.getEmail() == null) {
+				authDB = this.authRepository.findBy_username(auth.getUsername()).orElseThrow(
+						() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+				);
+			}
+			else {
+				throw new UsernameNotFoundException("User not Found");
+			}
 			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
 			if(!valid) {
 				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
@@ -61,13 +74,13 @@ public class AuthenticationService implements UserDetailsService{
 			this.tokenService.insertUpdate(jwt);
 			CookieUtil.create(response, this.accessToken, jwtToken, false, "localhost");
 			CookieUtil.create(response, this.refreshToken, refreshToken, false, "localhost");
-			return new StatusResult<String>(HttpStatus.OK.value(), authDB.getId().toString());
+			return new StatusResult<Long>(HttpStatus.OK.value(), authDB.getId());
 		}
 		catch (Exception e) {
-			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
+			throw new UsernameNotFoundException(e.getLocalizedMessage());
 		}
 	}
-	
+
 	@Override
 	public AuthJPA loadUserByUsername(String username) {
 		AuthJPA user = this.authRepository.findBy_username(username).orElseThrow(
@@ -76,12 +89,39 @@ public class AuthenticationService implements UserDetailsService{
 		return user;
 	}
 	
-	public StatusResult<?> authInsertUpdate(AuthJPA auth){
-		if (auth == null) {
-			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
+	public StatusResult<?> getAuthenticatedUserID(){
+		final Cookie cookieAccess = WebUtils.getCookie(request, this.accessToken);
+		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
+		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
+		final String userID = jwtService.extractSubject(jwt.getToken()).orElseThrow(
+			() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_AT.toString()) 
+		);
+		return new StatusResult<Long>(HttpStatus.OK.value(), Long.parseLong(userID));
+	}
+	
+	public StatusResult<?> authInsert(AuthJPA auth){
+		try {			
+			auth.setPassword(this.passwordEncoder.encode(auth.getPassword()));
+			this.authRepository.save(auth);
+			return new StatusResult<AuthJPA>(HttpStatus.OK.value(), auth);
 		}
-		this.authRepository.save(auth);
-		return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
+		catch(Exception e) {
+			throw new InternalExceptionResult("Somenthing went wrong at insert Auth");
+		}
+	}
+	
+	public StatusResult<?> authUpdate(AuthJPA auth){
+		try {
+			if(this.tokenService.getTokenValidation(auth.getId()) == false) {
+				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
+			}
+			auth.setPassword(this.passwordEncoder.encode(auth.getPassword()));
+			this.authRepository.save(auth);
+			return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
+		}
+		catch(Exception e) {
+			throw new BadRequestExceptionResult("Somenthing went wrong at update Auth");
+		}
 	}
 	
 	public StatusResult<?> acceptAuth(AuthJPA auth){
@@ -89,12 +129,15 @@ public class AuthenticationService implements UserDetailsService{
 			AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
 					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
 			);
+			if(this.tokenService.getTokenValidation(authDB.getId()) == false) {
+				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
+			}
 			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
 			if(!valid) {
 				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
 			}
 			response.setContentType(null);
-			return new StatusResult<String>(HttpStatus.OK.value(), authDB.getId().toString());
+			return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
 		}
 		catch (Exception e) {
 			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");

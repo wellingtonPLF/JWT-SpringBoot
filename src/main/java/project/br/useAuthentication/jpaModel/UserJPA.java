@@ -41,8 +41,7 @@ public class UserJPA {
 	@Column(name="borndate")
 	private Date _bornDate;
 
-	@OneToOne(fetch=FetchType.LAZY)
-	@JsonIgnore
+	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "auth_ID", unique = true)
 	private AuthJPA _auth;
 	
@@ -79,6 +78,13 @@ public class UserJPA {
 	}
 	public void setAuth(AuthJPA auth) {
 		this._auth = auth;
-	}	
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("Id:%d\n"
+				+ "Name:%s\n"
+				+ "BornDate:%s\n", this._id, this._nickName, this._bornDate);
+	}
 }
 
