@@ -26,6 +26,12 @@ public class AuthController {
 	public StatusResult<?> authentication(@Valid @RequestBody AuthJPA auth) {
 		return this.authService.authenticate(auth);
 	}
+	
+	@PreAuthorize("permitAll()")
+	@GetMapping("/usuarios/isLoggedIn")
+	public Boolean isLogged() {
+		return this.authService.isLogged();
+	}
 		
 	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
 	@PostMapping("/usuarios/acceptAuth")
@@ -49,12 +55,6 @@ public class AuthController {
 	@GetMapping("/usuarios/refresh")
 	public StatusResult<?> refresh() {
 		return this.authService.refresh();
-	}
-	
-	@PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_USER')")
-	@GetMapping("/usuarios/getUserID")
-	public StatusResult<?> getAuthenticatedUserID() {
-		return this.authService.getAuthenticatedUserID();
 	}
 		
 	@PreAuthorize("permitAll()")

@@ -25,6 +25,7 @@ import project.br.useAuthentication.jpaModel.AuthJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.repository.AuthRepository;
 import project.br.useAuthentication.repository.TokenRepository;
+import project.br.useAuthentication.util.CookieUtil;
 import project.br.useAuthentication.util.JwtUtil;
 
 @Component
@@ -47,10 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			@NonNull HttpServletRequest request,@NonNull HttpServletResponse response,@NonNull FilterChain filterChain) 
 					throws ServletException, IOException {
 		final String authID;
-		final Cookie cookie = WebUtils.getCookie(request, this.accessToken);
-		final String jwt = (cookie != null) ? cookie.getValue() : null;
+		final String jwt = CookieUtil.getCookieValue(request, this.accessToken);
 		try {
-			TokenJPA tokenDB = tokenRepository.findBy_token(jwt).orElse(null);
+			TokenJPA tokenDB = this.tokenRepository.findBy_token(jwt).orElse(null);
 			if (tokenDB != null) {
 				// (Expired == true) ? Exception : "userID"
 				authID = jwtService.extractSubject(jwt).orElseThrow(

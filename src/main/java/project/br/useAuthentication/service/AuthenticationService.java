@@ -1,6 +1,8 @@
 package project.br.useAuthentication.service;
 
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -17,8 +19,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.enumState.TokenType;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
-import project.br.useAuthentication.exception.BadRequestExceptionResult;
 import project.br.useAuthentication.exception.InternalExceptionResult;
+import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.AuthJPA;
 import project.br.useAuthentication.jpaModel.TokenJPA;
@@ -30,9 +32,9 @@ import project.br.useAuthentication.util.JwtUtil;
 public class AuthenticationService implements UserDetailsService{
 	
 	@Value("${security.jwt.tokenName}")
-	private String accessToken;
+	private String accessTokenName;
 	@Value("${security.jwt.refreshName}")
-	private String refreshToken;
+	private String refreshTokenName;
 	@Autowired
 	private JwtUtil jwtService;
 	@Autowired
@@ -72,15 +74,54 @@ public class AuthenticationService implements UserDetailsService{
 			TokenJPA jwt = new TokenJPA(jwtToken, authDB);
 			this.tokenService.removeByAuthID(authDB.getId());
 			this.tokenService.insertUpdate(jwt);
-			CookieUtil.create(response, this.accessToken, jwtToken, false, "localhost");
-			CookieUtil.create(response, this.refreshToken, refreshToken, false, "localhost");
+			CookieUtil.create(response, this.accessTokenName, jwtToken, false, "localhost");
+			CookieUtil.create(response, this.refreshTokenName, refreshToken, false, "localhost");
 			return new StatusResult<Long>(HttpStatus.OK.value(), authDB.getId());
 		}
 		catch (Exception e) {
 			throw new UsernameNotFoundException(e.getLocalizedMessage());
 		}
 	}
+	
+	// ------------------------------------------------------------------------------------------
 
+	public List<AuthJPA> findAll(){
+		return this.authRepository.findAll();
+	}
+	
+	public Boolean isLogged(){
+		String jwt = CookieUtil.getCookieValue(this.request, this.accessTokenName);
+		TokenJPA jwtDB;
+		try {
+			jwtDB = this.tokenService.findByToken(jwt);
+		}
+		catch(Exception e) {
+			return false;
+		}
+		jwtService.extractSubject(jwtDB.getToken()).orElseThrow(
+			() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_AT.toString()) 
+		);
+		return true;
+	}
+	
+	
+	public AuthJPA findById(String authID) {
+		return this.authRepository.findById(Long.parseLong(authID)).orElseThrow(
+			() -> new NotFoundExceptionResult("The requested Id was not found.")
+		);
+	}
+	
+	public AuthJPA findByUserID(Long id) {
+		AuthJPA authDB = this.authRepository.findByUserID(id).orElseThrow(
+			() -> new NotFoundExceptionResult("The requested Id was not found.")
+		);
+		return authDB; 
+	}
+	
+	public void deleteById(Long id) {
+		this.authRepository.deleteById(id);
+	}
+	
 	@Override
 	public AuthJPA loadUserByUsername(String username) {
 		AuthJPA user = this.authRepository.findBy_username(username).orElseThrow(
@@ -89,15 +130,7 @@ public class AuthenticationService implements UserDetailsService{
 		return user;
 	}
 	
-	public StatusResult<?> getAuthenticatedUserID(){
-		final Cookie cookieAccess = WebUtils.getCookie(request, this.accessToken);
-		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
-		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
-		final String userID = jwtService.extractSubject(jwt.getToken()).orElseThrow(
-			() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_AT.toString()) 
-		);
-		return new StatusResult<Long>(HttpStatus.OK.value(), Long.parseLong(userID));
-	}
+	// ------------------------------------------------------------------------------------------
 	
 	public StatusResult<?> authInsert(AuthJPA auth){
 		try {			
@@ -111,47 +144,46 @@ public class AuthenticationService implements UserDetailsService{
 	}
 	
 	public StatusResult<?> authUpdate(AuthJPA auth){
-		try {
-			if(this.tokenService.getTokenValidation(auth.getId()) == false) {
-				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
-			}
-			auth.setPassword(this.passwordEncoder.encode(auth.getPassword()));
-			this.authRepository.save(auth);
-			return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
+		final String accessToken = CookieUtil.getCookieValue(this.request, this.accessTokenName);
+		final TokenJPA jwtDB = this.tokenService.findByToken(accessToken);
+		final String authID = jwtService.extractSubject(jwtDB.getToken()).orElseThrow(
+			() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_AT.toString())
+		);
+		AuthJPA authDB = this.authRepository.findById(Long.parseLong(authID)).orElseThrow(
+				() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+		);
+		authDB.setPassword(this.passwordEncoder.encode(auth.getPassword()));
+		if (auth.getEmail() != null) {
+			authDB.setEmail(auth.getEmail());
 		}
-		catch(Exception e) {
-			throw new BadRequestExceptionResult("Somenthing went wrong at update Auth");
+		if (auth.getUsername() != null) {
+			authDB.setUsername(auth.getUsername());
 		}
+		this.authRepository.save(authDB);
+		return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
 	}
 	
 	public StatusResult<?> acceptAuth(AuthJPA auth){
-		try {
-			AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
-					() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
-			);
-			if(this.tokenService.getTokenValidation(authDB.getId()) == false) {
-				throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
-			}
-			Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
-			if(!valid) {
-				throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
-			}
-			response.setContentType(null);
-			return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
+		AuthJPA authDB = this.authRepository.findBy_email(auth.getEmail()).orElseThrow(
+				() -> new UsernameNotFoundException("User not Found: " + auth.getEmail())
+		);
+		if(this.tokenService.getTokenValidation(authDB.getId()) == false) {
+			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		catch (Exception e) {
+		Boolean valid = this.passwordEncoder.matches(auth.getPassword(), authDB.getPassword());
+		if(!valid) {
 			throw new UsernameNotFoundException("Incorrect Email or Password , try again.");
 		}
+		response.setContentType(null);
+		return new StatusResult<String>(HttpStatus.OK.value(), "Successfully!");
 	}
 	
 	public StatusResult<?> refresh() {
-		final Cookie cookieAccess = WebUtils.getCookie(request, this.accessToken);
-		final String accessToken = (cookieAccess != null) ? cookieAccess.getValue() : null;
+		final String accessToken = CookieUtil.getCookieValue(this.request, this.accessTokenName);
 		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
 		final String expiredAcessToken = jwtService.extractSubject(jwt.getToken()).orElse(null);
 		if (expiredAcessToken == null) {
-			final Cookie cookieRefresh = WebUtils.getCookie(request, this.refreshToken);
-			final String refreshToken = (cookieRefresh != null) ? cookieRefresh.getValue() : null;
+			final String refreshToken = CookieUtil.getCookieValue(this.request, this.refreshTokenName);
 			if (refreshToken == null) {
 				throw new AuthenticationExceptionResponse(JwtType.INVALID_RT.toString());
 			}
@@ -165,8 +197,8 @@ public class AuthenticationService implements UserDetailsService{
 			String jwtRefresh = jwtService.generateToken(authDB, TokenType.REFRESH_TOKEN);
 			jwt.setToken(jwtToken);
 			this.tokenService.insertUpdate(jwt);
-			CookieUtil.create(response, this.accessToken, jwtToken, false, "localhost");
-			CookieUtil.create(response, this.refreshToken, jwtRefresh , false, "localhost");
+			CookieUtil.create(response, this.accessTokenName, jwtToken, false, "localhost");
+			CookieUtil.create(response, this.refreshTokenName, jwtRefresh , false, "localhost");
 			return new StatusResult<String>(HttpStatus.OK.value(), "Refresh Succefully Done");
 		}
 		else {
@@ -176,13 +208,12 @@ public class AuthenticationService implements UserDetailsService{
 	
 	public StatusResult<?> logout() {
 		try {
-			final Cookie cookie = WebUtils.getCookie(this.request, this.accessToken);
-			final String jwt = (cookie != null) ? cookie.getValue() : null;
+			final String jwt = CookieUtil.getCookieValue(this.request, this.accessTokenName);
 			TokenJPA jwtDB = tokenService.findByToken(jwt);
-		    CookieUtil.clear(response, this.accessToken);
-		    CookieUtil.clear(response, this.refreshToken);
-		    tokenService.remove(jwtDB.getId());
+			CookieUtil.clear(response, this.accessTokenName);
+		    CookieUtil.clear(response, this.refreshTokenName);
 		    SecurityContextHolder.clearContext();
+		    tokenService.remove(jwtDB.getId());
 		    return new StatusResult<String>(HttpStatus.OK.value(), "LogOut Succefully Done");
 		}
 		catch(Exception e) {

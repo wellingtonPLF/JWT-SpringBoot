@@ -8,7 +8,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.util.WebUtils;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.dtoModel.UserDTO;
 import project.br.useAuthentication.enumState.JwtType;
 import project.br.useAuthentication.exception.AuthenticationExceptionResponse;
@@ -16,50 +20,60 @@ import project.br.useAuthentication.exception.BadRequestExceptionResult;
 import project.br.useAuthentication.exception.NotFoundExceptionResult;
 import project.br.useAuthentication.format.StatusResult;
 import project.br.useAuthentication.jpaModel.AuthJPA;
+import project.br.useAuthentication.jpaModel.TokenJPA;
 import project.br.useAuthentication.jpaModel.UserJPA;
-import project.br.useAuthentication.repository.AuthRepository;
 import project.br.useAuthentication.repository.UserRepository;
+import project.br.useAuthentication.util.CookieUtil;
+import project.br.useAuthentication.util.JwtUtil;
 
 @Service
 public class UserService {
 	
 	@Value("${security.jwt.tokenName}")
-	private String accessToken;
+	private String accessTokenName;
+	@Value("${security.jwt.refreshName}")
+	private String refreshTokenName;
 	@Autowired
 	private UserRepository userRepository;
 	@Autowired
-	private AuthRepository authRepository;
+	private AuthenticationService authService;
 	@Autowired
 	private TokenService tokenService;
+	@Autowired
+	private JwtUtil jwtService;
+	@Autowired
+	private HttpServletRequest request;
+	@Autowired
+	private HttpServletResponse response;
 	
 	@Transactional
 	public StatusResult<?> listAll() {
 		List<UserJPA> userDB = this.userRepository.findAll();
-		List<AuthJPA> authDB = this.authRepository.findAll();
+		List<AuthJPA> authDB = this.authService.findAll();
 		List<UserDTO> users = userDB.stream()
 			.map(user ->
-					new UserDTO(user, authDB.stream().filter((auth) -> auth.getId() == user.getAuth().getId()).findFirst()
-							.orElse(null))
+					new UserDTO(user, authDB.stream().filter(
+							(auth) -> auth.getId() == user.getAuth().getId()).findFirst().orElse(null))
 				).collect(Collectors.toList());
 		return new StatusResult<List<UserDTO>>(HttpStatus.OK.value(), users);
 	}
 	
-	public StatusResult<?> findById(Long id) {
-		try {
-			UserJPA userDB = this.userRepository.findById(id).orElse(null);
-			AuthJPA authDB = this.authRepository.findByUserID(userDB.getId()).orElseThrow();
-			UserDTO user = new UserDTO(userDB, authDB);
-			return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
-		}
-		catch(Exception e) {
-			throw new NotFoundExceptionResult("The requested Id was not found.");
-		}
+	public StatusResult<?> getAuthenticatedUser() {
+		final String accessToken = CookieUtil.getCookieValue(this.request, this.accessTokenName);
+		final TokenJPA jwt = this.tokenService.findByToken(accessToken);
+		final String authID = jwtService.extractSubject(jwt.getToken()).orElseThrow(
+			() -> new AuthenticationExceptionResponse(JwtType.EXPIRED_AT.toString()) 
+		);
+		AuthJPA authDB = this.authService.findById(authID);
+		UserJPA userDB = this.userRepository.findBy_auth_id(authDB.getId()).orElseThrow();
+		UserDTO user = new UserDTO(userDB, authDB);
+		return new StatusResult<UserDTO>(HttpStatus.OK.value(), user);
 	}
 
 	public StatusResult<?> insert(UserJPA user) {
 		try {
 			UserJPA userDB = this.userRepository.save(user);
-			AuthJPA authDB = this.authRepository.findByUserID(user.getId()).orElseThrow();
+			AuthJPA authDB = this.authService.findByUserID(user.getId());
 			UserDTO u = new UserDTO(userDB, authDB);
 			return new StatusResult<UserDTO>(HttpStatus.OK.value(), u);
 		}
@@ -73,10 +87,10 @@ public class UserService {
 		if (user == null) {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		if(this.tokenService.getTokenValidation(user.getId()) == false) {
+		AuthJPA authDB = this.authService.findByUserID(user.getId());
+		if(this.tokenService.getTokenValidation(authDB.getId()) == false) {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		AuthJPA authDB = this.authRepository.findByUserID(user.getId()).orElseThrow();
 		user.setAuth(authDB);
 		UserJPA userDB = this.userRepository.save(user); 
 		UserDTO u = new UserDTO(userDB, authDB);
@@ -87,18 +101,13 @@ public class UserService {
 		if (id == null) {
 			throw new BadRequestExceptionResult("UserId is null");
 		}
-		if(this.tokenService.getTokenValidation(id) == false) {
+		AuthJPA auth = this.authService.findByUserID(id);
+		if(this.tokenService.getTokenValidation(auth.getId()) == false) {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
-		try {
-			AuthJPA auth = this.authRepository.findByUserID(id).orElseThrow();
-			this.authRepository.deleteById(auth.getId());;
-			return new StatusResult<HttpStatus>(HttpStatus.OK.value(), HttpStatus.OK);
-		}
-		catch(Exception e) {
-			throw new NotFoundExceptionResult("The requested Id was not found.");
-		}
-	}
-	
-	
+		this.authService.deleteById(auth.getId());
+		CookieUtil.clear(this.response, this.accessTokenName);
+	    CookieUtil.clear(this.response, this.refreshTokenName);
+		return new StatusResult<HttpStatus>(HttpStatus.OK.value(), HttpStatus.OK);
+	}	
 }
