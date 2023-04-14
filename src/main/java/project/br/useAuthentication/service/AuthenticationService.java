@@ -11,9 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.util.WebUtils;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import project.br.useAuthentication.enumState.JwtType;
@@ -76,7 +74,7 @@ public class AuthenticationService implements UserDetailsService{
 			this.tokenService.insertUpdate(jwt);
 			CookieUtil.create(response, this.accessTokenName, jwtToken, false, "localhost");
 			CookieUtil.create(response, this.refreshTokenName, refreshToken, false, "localhost");
-			return new StatusResult<Long>(HttpStatus.OK.value(), authDB.getId());
+			return new StatusResult<String>(HttpStatus.OK.value(), "Success!");
 		}
 		catch (Exception e) {
 			throw new UsernameNotFoundException(e.getLocalizedMessage());

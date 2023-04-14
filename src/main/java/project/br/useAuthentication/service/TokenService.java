@@ -33,7 +33,7 @@ public class TokenService {
 	@Autowired
 	private AuthRepository authRepository;
 		
-	public TokenJPA findByIds(Long id) {
+	public TokenJPA findById(Long id) {
 		TokenJPA token = this.tokenRepository.findById(id).orElseThrow(
 			() -> new NotFoundExceptionResult("The requested TokenId was not found."));
 		return token;
