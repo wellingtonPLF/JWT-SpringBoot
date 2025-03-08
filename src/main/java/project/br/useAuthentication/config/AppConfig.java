@@ -1,6 +1,8 @@
 package project.br.useAuthentication.config;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -23,11 +25,13 @@ public class AppConfig {
       	
    @Bean
    public WebMvcConfigurer corsConfigurer() {
+	   List<String> origins = Arrays.asList(url.split(","));
        return new WebMvcConfigurer() {
-           @Override public void addCorsMappings(CorsRegistry registry) {
+    	   @Override public void addCorsMappings(CorsRegistry registry) {
                registry.addMapping("/**")
-               .allowedOrigins(url)
+               .allowedOrigins(origins.toArray(new String[0]))
                .allowCredentials(true)
+               .allowedHeaders("X-CSRF-Token", "Content-Type", "ngrok-skip-browser-warning")
                .allowedMethods("GET", "POST", "PUT", "DELETE");
            }
        };

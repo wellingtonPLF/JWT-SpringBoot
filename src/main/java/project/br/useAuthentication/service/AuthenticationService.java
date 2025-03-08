@@ -72,8 +72,8 @@ public class AuthenticationService implements UserDetailsService{
 			TokenJPA jwt = new TokenJPA(jwtToken, authDB);
 			this.tokenService.removeByAuthID(authDB.getId());
 			this.tokenService.insertUpdate(jwt);
-			CookieUtil.create(response, this.accessTokenName, jwtToken, false, "localhost");
-			CookieUtil.create(response, this.refreshTokenName, refreshToken, false, "localhost");
+			CookieUtil.create(response, this.accessTokenName, jwtToken, request);
+			CookieUtil.create(response, this.refreshTokenName, refreshToken, request);
 			return new StatusResult<String>(HttpStatus.OK.value(), "Success!");
 		}
 		catch (Exception e) {
@@ -195,8 +195,8 @@ public class AuthenticationService implements UserDetailsService{
 			String jwtRefresh = jwtService.generateToken(authDB, TokenType.REFRESH_TOKEN);
 			jwt.setToken(jwtToken);
 			this.tokenService.insertUpdate(jwt);
-			CookieUtil.create(response, this.accessTokenName, jwtToken, false, "localhost");
-			CookieUtil.create(response, this.refreshTokenName, jwtRefresh , false, "localhost");
+			CookieUtil.create(response, this.accessTokenName, jwtToken, request);
+			CookieUtil.create(response, this.refreshTokenName, jwtRefresh , request);
 			return new StatusResult<String>(HttpStatus.OK.value(), "Refresh Succefully Done");
 		}
 		else {
@@ -208,8 +208,8 @@ public class AuthenticationService implements UserDetailsService{
 		try {
 			final String jwt = CookieUtil.getCookieValue(this.request, this.accessTokenName);
 			TokenJPA jwtDB = tokenService.findByToken(jwt);
-			CookieUtil.clear(response, this.accessTokenName);
-		    CookieUtil.clear(response, this.refreshTokenName);
+			CookieUtil.clear(response, this.accessTokenName, request);
+		    CookieUtil.clear(response, this.refreshTokenName, request);
 		    SecurityContextHolder.clearContext();
 		    tokenService.remove(jwtDB.getId());
 		    return new StatusResult<String>(HttpStatus.OK.value(), "LogOut Succefully Done");

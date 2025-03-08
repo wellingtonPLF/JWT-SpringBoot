@@ -106,8 +106,8 @@ public class UserService {
 			throw new AuthenticationExceptionResponse(JwtType.INVALID_USER.toString());
 		}
 		this.authService.deleteById(auth.getId());
-		CookieUtil.clear(this.response, this.accessTokenName);
-	    CookieUtil.clear(this.response, this.refreshTokenName);
+		CookieUtil.clear(this.response, this.accessTokenName, request);
+	    CookieUtil.clear(this.response, this.refreshTokenName, request);
 		return new StatusResult<HttpStatus>(HttpStatus.OK.value(), HttpStatus.OK);
 	}	
 }

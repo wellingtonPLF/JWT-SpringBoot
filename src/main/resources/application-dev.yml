@@ -3,7 +3,7 @@ spring:
   datasource:
     username: ${USERNAME}
     password: ${PASSWORD}
-    url: jdbc:postgresql://localhost:5432/userAuth
+    url: ${DATABASE} #Example: jdbc:postgresql://localhost:5432/userAuth
   database:
     driverClassName: org.postgresql.Driver 
   sql:
